@@ -6,6 +6,7 @@ import {
 import { clsx } from 'clsx';
 
 import BaseWorkflowCanvas from './BaseWorkflowCanvas';
+import { useWorkflowStore } from '../../stores/workflow';
 import type { WorkflowDefinition, NodeType } from '../../types/workflow';
 import type { NodeActionHandler } from '../../types/node';
 
@@ -18,7 +19,6 @@ interface AuthoringCanvasProps {
   nodeActionHandler?: NodeActionHandler;
 }
 
-// Internal component that uses useReactFlow hook
 const AuthoringCanvasInternal: React.FC<AuthoringCanvasProps> = ({
   workflow,
   className,
@@ -30,10 +30,10 @@ const AuthoringCanvasInternal: React.FC<AuthoringCanvasProps> = ({
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const { screenToFlowPosition } = useReactFlow();
+  const { currentWorkflow, setCurrentWorkflow } = useWorkflowStore();
 
   const addNodeToCanvas = useCallback((type: NodeType, position?: { x: number; y: number }) => {
     const defaultPosition = position || { x: 300, y: 200 };
-    console.log('AuthoringCanvas: Adding node', type, 'at', defaultPosition);
     onAddNode?.(type, defaultPosition);
   }, [onAddNode]);
 
@@ -51,13 +51,10 @@ const AuthoringCanvasInternal: React.FC<AuthoringCanvasProps> = ({
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
-      console.log('Drop event triggered');
 
       const type = event.dataTransfer.getData('application/reactflow') as NodeType;
-      console.log('Dropped node type:', type);
 
       if (typeof type === 'undefined' || !type) {
-        console.log('Missing node type for drop:', type);
         return;
       }
 
@@ -65,7 +62,6 @@ const AuthoringCanvasInternal: React.FC<AuthoringCanvasProps> = ({
         x: event.clientX,
         y: event.clientY,
       });
-      console.log('Drop position:', position);
 
       addNodeToCanvas(type, position);
       setIsDragOver(false);
@@ -104,6 +100,15 @@ const AuthoringCanvasInternal: React.FC<AuthoringCanvasProps> = ({
         className="h-full"
         onNodeClick={onNodeClick}
         onCanvasClick={handleCanvasClick}
+        onWorkflowChange={(nodes, edges) => {
+          if (currentWorkflow) {
+            setCurrentWorkflow({
+              ...currentWorkflow,
+              nodes,
+              edges,
+            });
+          }
+        }}
         nodeActionHandler={nodeActionHandler}
         nodesDraggable={true}
         nodesConnectable={true}

@@ -24,14 +24,15 @@ import { useKeyboardShortcuts, createDuplicateShortcut, createDeleteShortcut, is
 import type { WorkflowDefinition, NodeType } from '../../types/workflow';
 
 const WorkflowAuthoringPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id?: string }>();
+  const id = params.id || 'new';
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showPalette, setShowPalette] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  
-  const { 
+
+  const {
     currentWorkflow,
     setCurrentWorkflow,
     sidebarOpen,
@@ -41,11 +42,10 @@ const WorkflowAuthoringPage: React.FC = () => {
     resetWorkflow
   } = useWorkflowStore();
 
-  // Fetch workflow if editing existing one
-  const { 
-    data: workflow, 
-    isLoading, 
-    error 
+  const {
+    data: workflow,
+    isLoading,
+    error
   } = useQuery({
     queryKey: ['workflow', id],
     queryFn: () => id && id !== 'new' ? workflowApi.getWorkflow(id) : null,
@@ -76,31 +76,40 @@ const WorkflowAuthoringPage: React.FC = () => {
     },
   });
 
-  // Initialize workflow data
   React.useEffect(() => {
     if (id === 'new') {
-      // Create new workflow with default START node
       const startNode = {
         id: `start_${Date.now()}`,
         name: 'Start',
         type: 'START' as NodeType,
-        position: { x: 200, y: 150 },
+        position: { x: 150, y: 200 },
         data: {},
       };
 
-      const newWorkflow: Partial<WorkflowDefinition> = {
+      const endNode = {
+        id: `end_${Date.now()}`,
+        name: 'End',
+        type: 'END' as NodeType,
+        position: { x: 500, y: 200 },
+        data: {},
+      };
+
+      const newWorkflow: WorkflowDefinition = {
+        id: 'new',
         name: 'Untitled Workflow',
         description: '',
-        nodes: [startNode],
+        nodes: [startNode, endNode],
         edges: [],
         tags: [],
         globals: {},
+        createdAt: new Date().toISOString(),
+        createdBy: 'user',
       };
-      setCurrentWorkflow(newWorkflow as WorkflowDefinition);
+      setCurrentWorkflow(newWorkflow);
     } else if (workflow) {
       setCurrentWorkflow(workflow);
     }
-    
+
     return () => {
       resetWorkflow();
     };
@@ -131,18 +140,13 @@ const WorkflowAuthoringPage: React.FC = () => {
   };
 
   const handleAddNode = useCallback((type: NodeType, position?: { x: number; y: number }) => {
-    console.log(`Adding ${type} node at`, position);
-    
-    // Check if trying to add START node when one already exists
-    if (type === 'START' && currentWorkflow?.nodes.some(node => node.type === 'START')) {
-      console.warn('Cannot add START node: Workflow already has a START node');
-      // TODO: Show user notification
+    if ((type === 'START' || type === 'END') && currentWorkflow?.nodes.some(node => node.type === type)) {
       return;
     }
-    
+
     const defaultPosition = position || { x: 300, y: 200 };
     const nodeId = `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const newNode = {
       id: nodeId,
       name: `${type.charAt(0).toUpperCase() + type.slice(1).toLowerCase().replace('_', ' ')} Node`,
@@ -151,51 +155,24 @@ const WorkflowAuthoringPage: React.FC = () => {
       data: {},
     };
 
-    // Update the current workflow with the new node
     if (currentWorkflow) {
       const updatedWorkflow = {
         ...currentWorkflow,
         nodes: [...currentWorkflow.nodes, newNode],
       };
       setCurrentWorkflow(updatedWorkflow);
-    } else {
-      // Create a new workflow if none exists with START node
-      const startNode = {
-        id: `start_${Date.now()}`,
-        name: 'Start',
-        type: 'START' as NodeType,
-        position: { x: 200, y: 100 },
-        data: {},
-      };
-
-      const nodes = type === 'START' ? [newNode] : [startNode, newNode];
-      
-      const newWorkflow = {
-        id: 'new',
-        name: 'New Workflow',
-        description: 'A new workflow',
-        tags: [],
-        nodes,
-        edges: [],
-        createdAt: new Date().toISOString(),
-        createdBy: 'user',
-      };
-      setCurrentWorkflow(newWorkflow);
+      setHasUnsavedChanges(true);
     }
   }, [currentWorkflow, setCurrentWorkflow]);
 
   // setSelectedNodeId is already available from the main useWorkflowStore call above
 
   const handleNodeConfigure = useCallback((nodeId: string) => {
-    console.log('Configure node:', nodeId);
-    // TODO: Open configuration modal/panel
-    // For now, just select the node and show sidebar
     setSelectedNodeId(nodeId);
     setSidebarOpen(true);
   }, [setSelectedNodeId, setSidebarOpen]);
 
   const handleNodeDuplicate = useCallback((nodeId: string) => {
-    console.log('Duplicate node:', nodeId);
     if (!currentWorkflow) return;
 
     const nodeToDuplicate = currentWorkflow.nodes.find(n => n.id === nodeId);
@@ -222,14 +199,10 @@ const WorkflowAuthoringPage: React.FC = () => {
   }, [currentWorkflow, setCurrentWorkflow, setHasUnsavedChanges]);
 
   const handleNodeDelete = useCallback((nodeId: string) => {
-    console.log('Delete node:', nodeId);
     if (!currentWorkflow) return;
 
-    // Prevent deletion of START node
     const nodeToDelete = currentWorkflow.nodes.find(n => n.id === nodeId);
-    if (nodeToDelete?.type === 'START') {
-      console.warn('Cannot delete START node: Every workflow must have a START node');
-      // TODO: Show user notification
+    if (nodeToDelete?.type === 'START' || nodeToDelete?.type === 'END') {
       return;
     }
 
@@ -238,11 +211,10 @@ const WorkflowAuthoringPage: React.FC = () => {
       nodes: currentWorkflow.nodes.filter(n => n.id !== nodeId),
       edges: currentWorkflow.edges.filter(e => e.source !== nodeId && e.target !== nodeId),
     };
-    
+
     setCurrentWorkflow(updatedWorkflow);
     setHasUnsavedChanges(true);
-    
-    // Clear selection if deleted node was selected
+
     if (selectedNodeId === nodeId) {
       setSelectedNodeId(null);
       setSidebarOpen(false);
@@ -453,12 +425,14 @@ const WorkflowAuthoringPage: React.FC = () => {
         {/* Node Palette */}
         {showPalette && (
           <div className="w-80 border-r border-gray-200 bg-gray-50 p-4 overflow-y-auto">
-            <NodePalette 
+            <NodePalette
               onAddNode={handleAddNode}
               disabledNodeTypes={
-                currentWorkflow?.nodes.some(node => node.type === 'START') 
-                  ? ['START'] 
-                  : []
+                currentWorkflow?.nodes.reduce((acc, node) => {
+                  if (node.type === 'START') acc.push('START');
+                  if (node.type === 'END') acc.push('END');
+                  return acc;
+                }, [] as NodeType[]) || []
               }
             />
           </div>

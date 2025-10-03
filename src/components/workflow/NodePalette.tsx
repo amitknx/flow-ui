@@ -101,12 +101,8 @@ const NodePalette: React.FC<NodePaletteProps> = ({
   disabledNodeTypes = []
 }) => {
   const handleDragStart = (event: React.DragEvent, nodeType: NodeType) => {
-    console.log('Drag start:', nodeType);
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
-    
-    // Also set as text for debugging
-    event.dataTransfer.setData('text/plain', nodeType);
   };
 
   const groupedNodes = nodeItems.reduce((acc, item) => {

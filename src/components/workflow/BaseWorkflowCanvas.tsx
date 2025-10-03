@@ -9,7 +9,9 @@ import {
   addEdge,
   ConnectionMode,
   MarkerType,
+  BezierEdge,
 } from '@xyflow/react';
+import type { EdgeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { clsx } from 'clsx';
 
@@ -23,6 +25,10 @@ import type { Connection } from '@xyflow/react';
 
 const nodeTypes = {
   unifiedWorkflowNode: UnifiedWorkflowNode,
+};
+
+const edgeTypes: EdgeTypes = {
+  default: BezierEdge,
 };
 
 interface BaseWorkflowCanvasProps {
@@ -59,7 +65,6 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
   // Determine which data to use based on mode
   const sourceData = mode === 'execution' && executionSnapshot ? executionSnapshot : workflow;
 
-  // Convert workflow/execution data to React Flow format
   const initialNodes = useMemo((): Node[] => {
     if (!sourceData) return [];
 
@@ -94,14 +99,15 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
       target: edge.target,
       sourceHandle: edge.sourceHandle,
       targetHandle: edge.targetHandle,
+      type: 'default',
       animated: mode === 'execution' ? (edge as any).traversed : false,
-      style: { 
-        stroke: mode === 'execution' && (edge as any).traversed ? '#10b981' : '#94a3b8', 
-        strokeWidth: 2 
+      style: {
+        stroke: mode === 'execution' && (edge as any).traversed ? '#10b981' : '#94a3b8',
+        strokeWidth: 2.5,
       },
-      markerEnd: { 
-        type: MarkerType.ArrowClosed, 
-        color: mode === 'execution' && (edge as any).traversed ? '#10b981' : '#94a3b8' 
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: mode === 'execution' && (edge as any).traversed ? '#10b981' : '#94a3b8',
       },
       label: edge.label,
     }));
@@ -110,74 +116,69 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  // Update nodes and edges when source data changes, but preserve positions
-  useEffect(() => {
-    if (initialNodes.length === 0) {
-      // Empty workflow
-      setNodes([]);
-    } else if (nodes.length === 0) {
-      // First time loading nodes
-      setNodes(initialNodes);
-    } else {
-      // Handle updates to existing workflow
-      const existingNodeIds = new Set(nodes.map(n => n.id));
-      const newNodeIds = new Set(initialNodes.map(n => n.id));
-      
-      // Check if nodes were added
-      const nodesAdded = initialNodes.some(n => !existingNodeIds.has(n.id));
-      // Check if nodes were removed
-      const nodesRemoved = nodes.some(n => !newNodeIds.has(n.id));
-      
-      if (nodesRemoved) {
-        // Some nodes were removed, filter them out
-        const remainingNodes = nodes.filter(n => newNodeIds.has(n.id));
-        setNodes([
-          ...remainingNodes.map(currentNode => {
-            const updatedNode = initialNodes.find(n => n.id === currentNode.id);
-            return updatedNode ? {
-              ...currentNode,
-              data: updatedNode.data,
-              selected: updatedNode.selected,
-              actionHandler: updatedNode.actionHandler,
-            } : currentNode;
-          })
-        ]);
-      } else if (nodesAdded) {
-        // New nodes were added, preserve existing positions and add new ones
-        const newNodes = initialNodes.filter(n => !existingNodeIds.has(n.id));
-        setNodes(currentNodes => [
-          // Update existing nodes without changing positions
-          ...currentNodes.map(currentNode => {
-            const updatedNode = initialNodes.find(n => n.id === currentNode.id);
-            return updatedNode ? {
-              ...currentNode,
-              data: updatedNode.data,
-              selected: updatedNode.selected,
-              actionHandler: updatedNode.actionHandler,
-            } : currentNode;
-          }),
-          // Add new nodes with their specified positions
-          ...newNodes
-        ]);
-      } else {
-        // Same nodes, just update data
-        setNodes(currentNodes => 
-          currentNodes.map(currentNode => {
-            const updatedNode = initialNodes.find(n => n.id === currentNode.id);
-            return updatedNode ? {
-              ...currentNode,
-              data: updatedNode.data,
-              selected: updatedNode.selected,
-              actionHandler: updatedNode.actionHandler,
-            } : currentNode;
-          })
-        );
+  const handleNodesChange = useCallback((changes: any) => {
+    onNodesChange(changes);
+  }, [onNodesChange]);
+
+  const handleEdgesChange = useCallback((changes: any) => {
+    onEdgesChange(changes);
+
+    if (mode === 'authoring' && workflow && onWorkflowChange) {
+      const removedEdges = changes.filter((c: any) => c.type === 'remove');
+      if (removedEdges.length > 0) {
+        const removedIds = new Set(removedEdges.map((c: any) => c.id));
+        const updatedEdges = workflow.edges.filter(edge => !removedIds.has(edge.id));
+        onWorkflowChange(workflow.nodes, updatedEdges);
       }
     }
-    
-    // Always update edges as they don't have position state to preserve
+  }, [onEdgesChange, mode, workflow, onWorkflowChange]);
+
+  useEffect(() => {
+    if (initialNodes.length === 0) {
+      setNodes([]);
+      setEdges([]);
+      return;
+    }
+
+    if (nodes.length === 0) {
+      setNodes(initialNodes);
+      setEdges(initialEdges);
+      return;
+    }
+
+    const currentNodeIds = new Set(nodes.map(n => n.id));
+    const newNodeIds = new Set(initialNodes.map(n => n.id));
+
+    const nodesAdded = initialNodes.some(n => !currentNodeIds.has(n.id));
+    const nodesRemoved = nodes.some(n => !newNodeIds.has(n.id));
+
+    if (nodesAdded) {
+      const addedNodes = initialNodes.filter(n => !currentNodeIds.has(n.id));
+      setNodes(current => [
+        ...current.map(node => {
+          const updated = initialNodes.find(n => n.id === node.id);
+          return updated ? { ...node, data: updated.data, selected: updated.selected, actionHandler: updated.actionHandler } : node;
+        }),
+        ...addedNodes
+      ]);
+    } else if (nodesRemoved) {
+      setNodes(current =>
+        current.filter(n => newNodeIds.has(n.id)).map(node => {
+          const updated = initialNodes.find(n => n.id === node.id);
+          return updated ? { ...node, data: updated.data, selected: updated.selected, actionHandler: updated.actionHandler } : node;
+        })
+      );
+    } else {
+      setNodes(current =>
+        current.map(node => {
+          const updated = initialNodes.find(n => n.id === node.id);
+          return updated ? { ...node, data: updated.data, selected: updated.selected, actionHandler: updated.actionHandler } : node;
+        })
+      );
+    }
+
     setEdges(initialEdges);
-  }, [initialNodes, initialEdges, setNodes, setEdges]);
+  }, [initialNodes, initialEdges]);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -185,16 +186,26 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
         const newEdge = {
           ...params,
           id: `edge_${params.source}_${params.target}_${Date.now()}`,
+          type: 'default',
           animated: false,
-          style: { stroke: '#94a3b8', strokeWidth: 2 },
+          style: { stroke: '#94a3b8', strokeWidth: 2.5 },
           markerEnd: { type: MarkerType.ArrowClosed, color: '#94a3b8' },
-          sourceHandle: params.sourceHandle || undefined,
-          targetHandle: params.targetHandle || undefined,
         };
         setEdges((eds) => addEdge(newEdge as any, eds));
+
+        if (workflow && onWorkflowChange) {
+          const workflowEdge = {
+            id: newEdge.id,
+            source: params.source!,
+            target: params.target!,
+            sourceHandle: params.sourceHandle || undefined,
+            targetHandle: params.targetHandle || undefined,
+          };
+          onWorkflowChange(workflow.nodes, [...workflow.edges, workflowEdge]);
+        }
       }
     },
-    [setEdges, mode]
+    [mode, setEdges, workflow, onWorkflowChange]
   );
 
   const handleNodeClick = useCallback(
@@ -218,12 +229,13 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
+        onNodesChange={handleNodesChange}
+        onEdgesChange={handleEdgesChange}
         onConnect={onConnect}
         onNodeClick={handleNodeClick}
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         connectionMode={ConnectionMode.Loose}
         fitView
         proOptions={proOptions}
@@ -233,6 +245,8 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
         selectNodesOnDrag={false}
         multiSelectionKeyCode="Shift"
         deleteKeyCode={mode === 'authoring' ? "Delete" : undefined}
+        edgesFocusable={mode === 'authoring'}
+        edgesReconnectable={mode === 'authoring'}
       >
         <Background color="#e2e8f0" gap={16} />
         
