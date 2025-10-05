@@ -152,7 +152,7 @@ Edges are derived as parents → child during execution snapshotting; authored f
 
 ## 11. Naming
 - Project: flowboard
-- Domain packages: com.adobe.flowboard.*
+
 
 ---
 
