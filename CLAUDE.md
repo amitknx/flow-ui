@@ -1,6 +1,11 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Global Rules
+- Always make sure you dont break existing functionalities.
+- Always use modularize and standard code. 
+- Do not add too much comments. 
+- Try to separate reusable component and reuse existing functionalies.
 
 ## Development Commands
 

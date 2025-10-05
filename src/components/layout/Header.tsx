@@ -20,9 +20,11 @@ const Header: React.FC = () => {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <Workflow className="w-5 h-5 text-white" />
-              </div>
+              <img
+                src='/src/assets/flowboard-transparent.png'
+                alt="Flowboard Logo"
+                className="w-12 h-12 rounded-lg object-cover"
+              />
               <span className="text-xl font-bold text-gray-900">Flowboard</span>
             </Link>
           </div>
