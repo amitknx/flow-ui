@@ -48,6 +48,10 @@ interface WorkflowStore {
   setSelectedNodeId: (nodeId: string | null) => void;
   setSidebarOpen: (open: boolean) => void;
 
+  // Node update actions
+  updateNodeData: (nodeId: string, data: Record<string, any>) => void;
+  updateNodeName: (nodeId: string, name: string) => void;
+
   // Reset functions
   resetWorkflow: () => void;
   resetExecution: () => void;
@@ -126,8 +130,39 @@ export const useWorkflowStore = create<WorkflowStore>()(
 
       // UI actions
       setSelectedNodeId: (nodeId) => set({ selectedNodeId: nodeId }),
-      
+
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
+
+      // Node update actions
+      updateNodeData: (nodeId, data) => set((state) => {
+        if (!state.currentWorkflow) return state;
+
+        const updatedNodes = state.currentWorkflow.nodes.map(node =>
+          node.id === nodeId ? { ...node, data } : node
+        );
+
+        return {
+          currentWorkflow: {
+            ...state.currentWorkflow,
+            nodes: updatedNodes,
+          },
+        };
+      }),
+
+      updateNodeName: (nodeId, name) => set((state) => {
+        if (!state.currentWorkflow) return state;
+
+        const updatedNodes = state.currentWorkflow.nodes.map(node =>
+          node.id === nodeId ? { ...node, name } : node
+        );
+
+        return {
+          currentWorkflow: {
+            ...state.currentWorkflow,
+            nodes: updatedNodes,
+          },
+        };
+      }),
 
       // Reset functions
       resetWorkflow: () => set({

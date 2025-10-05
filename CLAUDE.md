@@ -169,6 +169,24 @@ Default WebSocket URL: `http://localhost:8080/ws`
 - `NodeHandles`: Source/target connection points
 - `NodeActions`: Configure/duplicate/delete actions (authoring mode)
 
+#### Node Configuration System
+- **Sidebar Component**: Dual-mode (execution/authoring)
+  - Execution mode: Shows node status, timings, input/output, errors
+  - Authoring mode: Shows configuration panel with node-specific forms
+- **NodeConfigPanel**: Main container component
+  - Node name editing (auto-save on blur/Enter)
+  - Routes to appropriate config component based on node type
+- **Configuration Components** (in `components/workflow/config/`):
+  - `HttpRequestConfig`: API selection from API management + endpoint + request body
+  - `ConditionalConfig`: Condition expression builder with JSONPath examples
+  - `DelayConfig`: Duration input with unit selector (ms/s/m/h)
+  - `JoinConfig`: Policy selector (ALL/ANY/COUNT) with conditional count input
+  - `SubWorkflowConfig`: Workflow selector + execution mode + input mapping
+- **Store Actions**:
+  - `updateNodeData(nodeId, data)`: Updates node configuration
+  - `updateNodeName(nodeId, name)`: Updates node name
+- **Validation**: `getNodeConfigurationStatus()` validates node-specific requirements
+
 ### Key Implementation Notes
 
 1. **React Flow Integration**:
@@ -234,4 +252,13 @@ Default WebSocket URL: `http://localhost:8080/ws`
 4. **Store Updates**:
    - Use Zustand actions, never mutate state directly
    - `updateExecutionSnapshot()` checks executionId before updating
+   - `updateNodeData()` and `updateNodeName()` for node configuration in authoring
    - Reset functions available: `resetWorkflow()`, `resetExecution()`
+
+5. **Node Configuration Workflow**:
+   - User clicks node in authoring mode → sidebar opens with `mode="authoring"`
+   - `NodeConfigPanel` renders appropriate config component based on node type
+   - Configuration changes trigger `updateNodeData()` → updates workflow store
+   - Workflow store changes trigger `hasUnsavedChanges` flag in parent component
+   - User saves workflow → persists all node configurations to backend
+   - Validation runs via `getNodeConfigurationStatus()` to mark nodes as configured/unconfigured

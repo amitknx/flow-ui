@@ -3,26 +3,28 @@ import { X, Info, Clock, Database, AlertCircle } from 'lucide-react';
 import { useWorkflowStore } from '../../stores/workflow';
 import { formatDuration, formatTimestamp, getStatusIcon } from '../../utils';
 import type { ExecutionNode } from '../../types/workflow';
+import NodeConfigPanel from '../workflow/NodeConfigPanel';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  mode?: 'execution' | 'authoring';
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { 
-    selectedNodeId, 
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, mode = 'execution' }) => {
+  const {
+    selectedNodeId,
     executionSnapshot,
-    currentWorkflow 
+    currentWorkflow
   } = useWorkflowStore();
 
-  const selectedNode = selectedNodeId && executionSnapshot 
+  const selectedNode = selectedNodeId && executionSnapshot
     ? executionSnapshot.nodes.find(n => n.id === selectedNodeId)
     : selectedNodeId && currentWorkflow
     ? currentWorkflow.nodes.find(n => n.id === selectedNodeId)
     : null;
 
-
+  const isAuthoringMode = mode === 'authoring';
 
   if (!isOpen) return null;
 
@@ -45,6 +47,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {selectedNode ? (
+            isAuthoringMode ? (
+              <NodeConfigPanel node={selectedNode} />
+            ) : (
             <>
               {/* Node Info */}
               <div className="space-y-3">
@@ -157,6 +162,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 </div>
               )}
             </>
+            )
           ) : (
             <div className="text-center text-gray-500 py-8">
               <Info className="w-8 h-8 mx-auto mb-2" />

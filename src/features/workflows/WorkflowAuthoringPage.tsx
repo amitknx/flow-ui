@@ -455,6 +455,7 @@ const WorkflowAuthoringPage: React.FC = () => {
         <Sidebar
           isOpen={sidebarOpen && !!selectedNodeId}
           onClose={() => setSidebarOpen(false)}
+          mode="authoring"
         />
       </div>
 

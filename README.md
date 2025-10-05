@@ -5,7 +5,20 @@ A modern React-based user interface for the Flowboard workflow visualization and
 ## 🚀 Features
 
 - **Workflow Authoring**: Create and edit workflow definitions using a visual canvas
+  - Drag-and-drop node placement from palette
+  - Visual edge connections with smooth bezier curves
+  - Node configuration via sidebar panel
+  - Real-time validation and configuration status indicators
+- **Node Configuration System**:
+  - Edit node names inline
+  - Type-specific configuration forms (API selection, conditions, delays, etc.)
+  - Integration with API management for HTTP requests
+  - JSONPath support for data mapping and conditions
 - **Real-time Execution Monitoring**: Watch workflow executions in real-time with live updates
+- **API Management**: Configure and manage external API integrations
+  - Support for multiple authentication methods (Basic, Bearer, API Key, OAuth2)
+  - Secret store integration for secure credential management
+  - Endpoint configuration with headers and request bodies
 - **Professional UI Components**: Built with the same high-quality components as your reference design
 - **WebSocket Integration**: Real-time updates via STOMP/SockJS
 - **Modular Architecture**: Feature-first directory structure for maintainability
@@ -119,13 +132,28 @@ The UI integrates with your backend services through:
 - Real-time status updates
 - Interactive node selection and editing
 
-### Node Types
-- **START/END**: Workflow entry and exit points
+### Node Types & Configuration
+
+Each node type has specific configuration requirements accessible via the sidebar panel in authoring mode:
+
+- **START/END**: Workflow entry and exit points (no configuration required)
 - **HTTP_REQUEST**: External API calls
+  - Select from pre-configured APIs (from API management section)
+  - Choose endpoint from selected API
+  - Configure request body for POST/PUT/PATCH methods
 - **DELAY**: Time-based delays
+  - Set duration with unit (milliseconds, seconds, minutes, hours)
+  - Real-time preview of total delay
 - **CONDITIONAL**: Branching logic
+  - Define condition expressions using JSONPath syntax
+  - Access previous node outputs (e.g., `$.output.status === 'success'`)
 - **JOIN**: Merge multiple branches
+  - Select join policy: ALL (wait for all), ANY (wait for any), COUNT (wait for N branches)
+  - Configure branch count for COUNT policy
 - **SUB_WORKFLOW**: Nested workflow execution
+  - Select sub-workflow from existing workflows
+  - Choose execution mode: SYNC (wait for completion) or ASYNC (fire and forget)
+  - Map parent workflow data to sub-workflow inputs using JSONPath
 
 ### Real-time Features
 - Live execution status updates

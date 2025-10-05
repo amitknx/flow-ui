@@ -154,27 +154,30 @@ export const getNodeColor = (type: NodeType, status?: WorkflowStatus): string =>
 
 export const getNodeConfigurationStatus = (type: NodeType, data?: Record<string, any>): boolean => {
   // Nodes that don't require configuration
-  const noConfigRequired = ['START', 'END', 'JOIN'];
+  const noConfigRequired = ['START', 'END'];
   if (noConfigRequired.includes(type)) {
     return true;
   }
-  
+
   // Nodes that require specific configuration
   const hasData = data && Object.keys(data).length > 0;
-  
+
   switch (type) {
     case 'HTTP_REQUEST':
-      // HTTP requests need at least a URL
-      return hasData && (data.url || data.endpoint);
+      // HTTP requests need API and endpoint selection
+      return hasData && !!data.apiId && !!data.endpointId;
     case 'DELAY':
-      // Delay needs a duration
-      return hasData && (data.duration || data.seconds || data.milliseconds);
+      // Delay needs a duration and unit
+      return hasData && !!data.duration && !!data.unit;
     case 'CONDITIONAL':
-      // Conditional needs a condition
-      return hasData && (data.condition || data.expression);
+      // Conditional needs a condition expression
+      return hasData && !!data.condition;
+    case 'JOIN':
+      // Join needs a policy (and count if policy is COUNT)
+      return hasData && !!data.policy && (data.policy !== 'COUNT' || !!data.count);
     case 'SUB_WORKFLOW':
-      // Sub-workflow needs a workflow reference
-      return hasData && (data.workflowId || data.workflow);
+      // Sub-workflow needs a workflow reference and execution mode
+      return hasData && !!data.workflowId && !!data.executionMode;
     default:
       // For other types, any data is considered configured
       return hasData;
