@@ -82,7 +82,7 @@ const WorkflowAuthoringPage: React.FC = () => {
         id: `start_${Date.now()}`,
         name: 'Start',
         type: 'START' as NodeType,
-        position: { x: 150, y: 200 },
+        position: { x: 300, y: 20 },
         data: {},
       };
 
@@ -90,7 +90,7 @@ const WorkflowAuthoringPage: React.FC = () => {
         id: `end_${Date.now()}`,
         name: 'End',
         type: 'END' as NodeType,
-        position: { x: 500, y: 200 },
+        position: { x: 300, y: 400 },
         data: {},
       };
 

@@ -102,12 +102,12 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
       type: 'default',
       animated: mode === 'execution' ? (edge as any).traversed : false,
       style: {
-        stroke: mode === 'execution' && (edge as any).traversed ? '#10b981' : '#94a3b8',
-        strokeWidth: 2.5,
+        stroke: mode === 'execution' && (edge as any).traversed ? '#10b981' : '#F27405',
+        strokeWidth: 1.5,
       },
       markerEnd: {
         type: MarkerType.ArrowClosed,
-        color: mode === 'execution' && (edge as any).traversed ? '#10b981' : '#94a3b8',
+        color: mode === 'execution' && (edge as any).traversed ? '#10b981' : '#F27405',
       },
       label: edge.label,
     }));
@@ -188,8 +188,8 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
           id: `edge_${params.source}_${params.target}_${Date.now()}`,
           type: 'default',
           animated: false,
-          style: { stroke: '#94a3b8', strokeWidth: 2.5 },
-          markerEnd: { type: MarkerType.ArrowClosed, color: '#94a3b8' },
+          style: { stroke: '#F27405', strokeWidth: 1.5 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: '#F27405' },
         };
         setEdges((eds) => addEdge(newEdge as any, eds));
 
@@ -246,6 +246,7 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
         multiSelectionKeyCode="Shift"
         deleteKeyCode={mode === 'authoring' ? "Delete" : undefined}
         edgesFocusable={mode === 'authoring'}
+        edgesSelectable={mode === 'authoring'}
         edgesReconnectable={mode === 'authoring'}
       >
         <Background color="#e2e8f0" gap={16} />
