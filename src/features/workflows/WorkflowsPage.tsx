@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
+import {
+  Plus,
+  Search,
+  Filter,
   MoreHorizontal,
   Play,
   Copy,
   Calendar,
-  User
+  User,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 import { workflowApi } from '../../services/api';
@@ -19,16 +21,22 @@ import { LoadingSpinner, ErrorState, EmptyState } from '../../components/ui';
 const WorkflowsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize] = useState(12);
 
-  const { 
-    data: workflows = [], 
-    isLoading, 
+  const {
+    data,
+    isLoading,
     error,
-    refetch 
+    refetch
   } = useQuery({
-    queryKey: ['workflows'],
-    queryFn: () => workflowApi.getWorkflows(),
+    queryKey: ['workflows', currentPage, pageSize],
+    queryFn: () => workflowApi.getWorkflows({ page: currentPage, size: pageSize }),
   });
+
+  const workflows = data?.content || [];
+  const totalPages = data?.totalPages || 0;
+  const totalElements = data?.totalElements || 0;
 
   const filteredWorkflows = workflows.filter(workflow =>
     workflow.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -199,6 +207,66 @@ const WorkflowsPage: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!searchQuery && totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-6">
+          <div className="text-sm text-gray-700">
+            Showing <span className="font-medium">{currentPage * pageSize + 1}</span> to{' '}
+            <span className="font-medium">
+              {Math.min((currentPage + 1) * pageSize, totalElements)}
+            </span>{' '}
+            of <span className="font-medium">{totalElements}</span> workflows
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+              disabled={currentPage === 0}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Previous
+            </button>
+
+            <div className="flex items-center space-x-1">
+              {Array.from({ length: totalPages }, (_, i) => i).map((page) => {
+                if (
+                  page === 0 ||
+                  page === totalPages - 1 ||
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                        currentPage === page
+                          ? 'bg-primary-600 text-white'
+                          : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page + 1}
+                    </button>
+                  );
+                } else if (page === currentPage - 2 || page === currentPage + 2) {
+                  return <span key={page} className="px-2 text-gray-500">...</span>;
+                }
+                return null;
+              })}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+              disabled={currentPage >= totalPages - 1}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </button>
+          </div>
         </div>
       )}
     </div>

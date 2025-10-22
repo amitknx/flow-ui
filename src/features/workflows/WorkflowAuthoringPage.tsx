@@ -21,6 +21,7 @@ import SelectedNodeIndicator from '../../components/ui/SelectedNodeIndicator';
 import { workflowApi } from '../../services/api';
 import { useWorkflowStore } from '../../stores/workflow';
 import { useKeyboardShortcuts, createDuplicateShortcut, createDeleteShortcut, isMac } from '../../hooks/useKeyboardShortcuts';
+import { generateWorkflowName } from '../../utils/formatters';
 import type { WorkflowDefinition, NodeType } from '../../types/workflow';
 
 const WorkflowAuthoringPage: React.FC = () => {
@@ -55,21 +56,15 @@ const WorkflowAuthoringPage: React.FC = () => {
   // Save workflow mutation
   const saveWorkflowMutation = useMutation({
     mutationFn: (workflowData: Partial<WorkflowDefinition>) => {
-      if (id && id !== 'new') {
-        return workflowApi.updateWorkflow(id, workflowData);
-      } else {
-        return workflowApi.createWorkflow(workflowData as Omit<WorkflowDefinition, 'id' | 'createdAt' | 'createdBy'>);
+      if (!currentWorkflow?.id) {
+        throw new Error('Cannot save workflow without an ID');
       }
+      return workflowApi.updateWorkflow(currentWorkflow.id, workflowData);
     },
     onSuccess: (savedWorkflow) => {
       setCurrentWorkflow(savedWorkflow);
       setHasUnsavedChanges(false);
       queryClient.invalidateQueries({ queryKey: ['workflows'] });
-      
-      // Navigate to the saved workflow if it was a new one
-      if (id === 'new') {
-        navigate(`/workflows/${savedWorkflow.id}/edit`, { replace: true });
-      }
     },
     onError: (error) => {
       console.error('Failed to save workflow:', error);
@@ -96,18 +91,23 @@ const WorkflowAuthoringPage: React.FC = () => {
         sourcePosition: 'left'
       };
 
-      const newWorkflow: WorkflowDefinition = {
-        id: 'new',
-        name: 'Untitled Workflow',
+      const newWorkflowData = {
+        name: generateWorkflowName(),
         description: '',
         nodes: [startNode, endNode],
         edges: [],
         tags: [],
         globals: {},
-        createdAt: new Date().toISOString(),
-        createdBy: 'user',
       };
-      setCurrentWorkflow(newWorkflow);
+
+      workflowApi.createWorkflow(newWorkflowData)
+        .then((createdWorkflow) => {
+          setCurrentWorkflow(createdWorkflow);
+          navigate(`/workflows/${createdWorkflow.id}/edit`, { replace: true });
+        })
+        .catch((error) => {
+          console.error('Failed to create workflow:', error);
+        });
     } else if (workflow) {
       setCurrentWorkflow(workflow);
     }
@@ -115,14 +115,14 @@ const WorkflowAuthoringPage: React.FC = () => {
     return () => {
       resetWorkflow();
     };
-  }, [workflow, id, setCurrentWorkflow, resetWorkflow]);
+  }, [workflow, id, setCurrentWorkflow, resetWorkflow, navigate]);
 
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (currentWorkflow) {
       await saveWorkflowMutation.mutateAsync(currentWorkflow);
     }
-  };
+  }, [currentWorkflow, saveWorkflowMutation]);
 
   const handleExecute = async () => {
     if (!currentWorkflow?.id) {

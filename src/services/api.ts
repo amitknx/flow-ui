@@ -80,29 +80,80 @@ class ApiClient {
   }
 }
 
+// Helper to transform backend response to WorkflowDefinition
+interface WorkflowResponse {
+  id: string;
+  name: string;
+  description?: string;
+  data: any;
+  createdAt: string;
+  createdBy: string;
+}
+
+const transformWorkflowResponse = (response: WorkflowResponse): WorkflowDefinition => {
+  const { id, name, description, data, createdAt, createdBy } = response;
+  return {
+    id,
+    name,
+    description,
+    createdAt,
+    createdBy,
+    ...data,
+  };
+};
+
 // API Services
 export class WorkflowApi {
   constructor(private client: ApiClient = new ApiClient()) {}
 
   // Authoring APIs
   async createWorkflow(workflow: Omit<WorkflowDefinition, 'id' | 'createdAt' | 'createdBy'>): Promise<WorkflowDefinition> {
-    return this.client.post<WorkflowDefinition>('/api/v1/workflows', workflow);
+    const { name, description, ...data } = workflow;
+    const requestBody = {
+      name,
+      description: description || '',
+      data,
+    };
+    const response = await this.client.post<WorkflowResponse>('/api/v1/workflows', requestBody);
+    return transformWorkflowResponse(response);
   }
 
   async cloneWorkflow(id: string): Promise<WorkflowDefinition> {
     return this.client.post<WorkflowDefinition>(`/api/v1/workflows/${id}/clone`);
   }
 
-  async getWorkflows(): Promise<WorkflowDefinition[]> {
-    return this.client.get<WorkflowDefinition[]>('/api/v1/workflows');
+  async getWorkflows(params?: { page?: number; size?: number }): Promise<{ content: WorkflowDefinition[]; totalElements: number; totalPages: number; number: number; size: number }> {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/api/v1/workflows?${queryString}` : '/api/v1/workflows';
+    const response = await this.client.get<{ content: WorkflowResponse[]; totalElements: number; totalPages: number; number: number; size: number }>(endpoint);
+
+    return {
+      ...response,
+      content: response.content.map(transformWorkflowResponse),
+    };
   }
 
   async getWorkflow(id: string): Promise<WorkflowDefinition> {
-    return this.client.get<WorkflowDefinition>(`/api/v1/workflows/${id}`);
+    const response = await this.client.get<WorkflowResponse>(`/api/v1/workflows/${id}`);
+    return transformWorkflowResponse(response);
   }
 
   async updateWorkflow(id: string, workflow: Partial<WorkflowDefinition>): Promise<WorkflowDefinition> {
-    return this.client.put<WorkflowDefinition>(`/api/v1/workflows/${id}`, workflow);
+    const { name, description, ...data } = workflow;
+    const requestBody: { name?: string; description?: string; data?: any } = {};
+
+    if (name !== undefined) requestBody.name = name;
+    if (description !== undefined) requestBody.description = description;
+
+    if (Object.keys(data).length > 0) {
+      requestBody.data = data;
+    }
+
+    const response = await this.client.put<WorkflowResponse>(`/api/v1/workflows/${id}`, requestBody);
+    return transformWorkflowResponse(response);
   }
 
   async deleteWorkflow(id: string): Promise<void> {
