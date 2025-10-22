@@ -61,10 +61,12 @@ const WorkflowAuthoringPage: React.FC = () => {
       }
       return workflowApi.updateWorkflow(currentWorkflow.id, workflowData);
     },
-    onSuccess: (savedWorkflow) => {
+    onSuccess: async (savedWorkflow) => {
       setCurrentWorkflow(savedWorkflow);
       setHasUnsavedChanges(false);
-      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      // Invalidate both workflow list and specific workflow queries
+      await queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      await queryClient.invalidateQueries({ queryKey: ['workflow', savedWorkflow.id] });
     },
     onError: (error) => {
       console.error('Failed to save workflow:', error);
@@ -103,6 +105,8 @@ const WorkflowAuthoringPage: React.FC = () => {
       workflowApi.createWorkflow(newWorkflowData)
         .then((createdWorkflow) => {
           setCurrentWorkflow(createdWorkflow);
+          // Invalidate workflow list cache
+          queryClient.invalidateQueries({ queryKey: ['workflows'] });
           navigate(`/workflows/${createdWorkflow.id}/edit`, { replace: true });
         })
         .catch((error) => {
@@ -115,7 +119,7 @@ const WorkflowAuthoringPage: React.FC = () => {
     return () => {
       resetWorkflow();
     };
-  }, [workflow, id, setCurrentWorkflow, resetWorkflow, navigate]);
+  }, [workflow, id, setCurrentWorkflow, resetWorkflow, navigate, queryClient]);
 
 
   const handleSave = useCallback(async () => {

@@ -34,7 +34,7 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -52,7 +52,18 @@ class ApiClient {
       );
     }
 
-    return response.json();
+    // Handle empty responses (like DELETE operations)
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return {} as T;
+    }
+
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      return {} as T;
+    }
+
+    return JSON.parse(text);
   }
 
   async get<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -92,13 +103,17 @@ interface WorkflowResponse {
 
 const transformWorkflowResponse = (response: WorkflowResponse): WorkflowDefinition => {
   const { id, name, description, data, createdAt, createdBy } = response;
+
+  // Ensure data doesn't override critical fields
+  const { id: _, ...safeData } = data || {};
+
   return {
     id,
     name,
     description,
     createdAt,
     createdBy,
-    ...data,
+    ...safeData,
   };
 };
 
@@ -119,7 +134,8 @@ export class WorkflowApi {
   }
 
   async cloneWorkflow(id: string): Promise<WorkflowDefinition> {
-    return this.client.post<WorkflowDefinition>(`/api/v1/workflows/${id}/clone`);
+    const response = await this.client.post<WorkflowResponse>(`/api/v1/workflows/${id}/clone`);
+    return transformWorkflowResponse(response);
   }
 
   async getWorkflows(params?: { page?: number; size?: number }): Promise<{ content: WorkflowDefinition[]; totalElements: number; totalPages: number; number: number; size: number }> {
