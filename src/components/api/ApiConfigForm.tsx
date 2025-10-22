@@ -9,25 +9,18 @@ import {
   TestTube, 
   Plus, 
   Trash2, 
-  Eye, 
-  EyeOff,
   AlertTriangle,
   CheckCircle,
   Info
 } from 'lucide-react';
 import clsx from 'clsx';
 
-import type { ApiConfig, AuthenticationType, HttpMethod } from '../../types/api';
-import { 
-  authenticationTypeConfig, 
-  httpMethodConfig, 
-  validateApiConfig,
-  createApiConfigTemplate 
-} from '../../utils/api-helpers';
+import type { ApiConfig } from '../../types/api';
+import { createApiConfigTemplate } from '../../utils/api-helpers';
 import { useSecretStores } from '../../hooks/useApiManagement';
 import { AuthenticationConfigForm } from './AuthenticationConfigForm';
 import { EndpointConfigForm } from './EndpointConfigForm';
-import { LoadingSpinner, ErrorState } from '../ui';
+import { LoadingSpinner } from '../ui';
 
 /**
  * Zod schema for API configuration validation
@@ -96,7 +89,6 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
   className = '',
 }) => {
   const [activeTab, setActiveTab] = useState<'basic' | 'auth' | 'endpoints' | 'advanced'>('basic');
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const { data: secretStores = [] } = useSecretStores();
 
@@ -104,7 +96,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
     control,
     handleSubmit,
     watch,
-    setValue,
+    
     formState: { errors, isDirty, isValid },
     reset,
   } = useForm<ApiConfigFormData>({
@@ -168,18 +160,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
     });
   };
 
-  const addEndpoint = () => {
-    const newEndpoint = {
-      id: `endpoint_${Date.now()}`,
-      name: 'New Endpoint',
-      description: '',
-      method: 'GET' as HttpMethod,
-      path: '/',
-      headers: [],
-      queryParams: {},
-    };
-    appendEndpoint(newEndpoint);
-  };
+
 
   const addTag = () => {
     appendTag('');

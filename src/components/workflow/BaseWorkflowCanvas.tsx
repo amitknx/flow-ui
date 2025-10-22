@@ -87,6 +87,8 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
       },
       selected: node.id === selectedNodeId,
       actionHandler: mode === 'authoring' ? nodeActionHandler : undefined,
+      sourcePosition: 'right',
+      targetPosition: 'left',
     }));
   }, [sourceData, mode, selectedNodeId]);
 

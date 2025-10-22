@@ -82,16 +82,18 @@ const WorkflowAuthoringPage: React.FC = () => {
         id: `start_${Date.now()}`,
         name: 'Start',
         type: 'START' as NodeType,
-        position: { x: 300, y: 20 },
+        position: { x: 200, y: 20 },
         data: {},
+        sourcePosition: 'right'
       };
 
       const endNode = {
         id: `end_${Date.now()}`,
         name: 'End',
         type: 'END' as NodeType,
-        position: { x: 300, y: 400 },
+        position: { x: 600, y: 20 },
         data: {},
+        sourcePosition: 'left'
       };
 
       const newWorkflow: WorkflowDefinition = {

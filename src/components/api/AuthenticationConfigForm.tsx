@@ -1,12 +1,12 @@
 
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Controller } from 'react-hook-form';
 import type { Control } from 'react-hook-form';
-import { Eye, EyeOff, Key, Shield, Lock, Settings } from 'lucide-react';
+import { Key, Shield, Lock, Settings } from 'lucide-react';
 import clsx from 'clsx';
 
-import type { AuthenticationType, SecretStoreConfig } from '../../types/api';
+import type { SecretStoreConfig } from '../../types/api';
 import { authenticationTypeConfig } from '../../utils/api-helpers';
 import { SecretReferenceInput } from './SecretReferenceInput';
 
@@ -24,14 +24,7 @@ export const AuthenticationConfigForm: React.FC<AuthenticationConfigFormProps> =
   secretStores,
   errors,
 }) => {
-  const [showSensitiveFields, setShowSensitiveFields] = useState<Record<string, boolean>>({});
-
-  const toggleSensitiveField = (fieldName: string) => {
-    setShowSensitiveFields(prev => ({
-      ...prev,
-      [fieldName]: !prev[fieldName],
-    }));
-  };
+  // sensitive field visibility state intentionally omitted until needed
 
   const renderAuthTypeSelector = () => (
     <div className="space-y-4">

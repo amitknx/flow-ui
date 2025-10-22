@@ -33,7 +33,7 @@ const AuthoringCanvasInternal: React.FC<AuthoringCanvasProps> = ({
   const { currentWorkflow, setCurrentWorkflow } = useWorkflowStore();
 
   const addNodeToCanvas = useCallback((type: NodeType, position?: { x: number; y: number }) => {
-    const defaultPosition = position || { x: 300, y: 200 };
+    const defaultPosition = position || { x: 200, y: 200 };
     onAddNode?.(type, defaultPosition);
   }, [onAddNode]);
 

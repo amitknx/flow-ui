@@ -11,11 +11,10 @@ import {
   Trash2,
   Key,
   CheckCircle,
-  XCircle,
   Clock,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react';
-import clsx from 'clsx';
+ 
 
 import type { SecretStoreConfig } from '../../types/api';
 import { useSecretStoreManagement, useDeleteSecretStore, useTestSecretStore } from '../../hooks/useApiManagement';

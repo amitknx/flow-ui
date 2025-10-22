@@ -11,9 +11,7 @@ import {
   Copy, 
   Edit, 
   Trash2,
-  ExternalLink,
   Download,
-  Upload,
   Settings,
   Globe,
   Lock,
@@ -47,7 +45,7 @@ export const ApisPage: React.FC = () => {
   const filteredApis = React.useMemo(() => {
     if (!apis.data) return [];
 
-    let filtered = apis.data.filter((api: ApiConfig) => {
+    const filtered = apis.data.filter((api: ApiConfig) => {
       // Search filter
       const matchesSearch = !searchQuery || 
         api.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

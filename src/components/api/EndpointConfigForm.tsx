@@ -17,7 +17,7 @@ import clsx from 'clsx';
 
 import type { HttpMethod, SecretStoreConfig } from '../../types/api';
 import { httpMethodConfig } from '../../utils/api-helpers';
-import { SecretReferenceInput } from './SecretReferenceInput';
+// SecretReferenceInput not used in this form file
 
 interface EndpointConfigFormProps {
   control: Control<any>;

@@ -1,5 +1,5 @@
 import { Client, FrameImpl } from '@stomp/stompjs';
-// @ts-ignore
+// @ts-expect-error: sockjs-client has different types in this environment
 import SockJS from 'sockjs-client';
 
 // Use FrameImpl as Frame type

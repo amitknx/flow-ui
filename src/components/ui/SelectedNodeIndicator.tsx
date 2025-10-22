@@ -4,13 +4,11 @@ import { isMac } from '../../hooks/useKeyboardShortcuts';
 
 interface SelectedNodeIndicatorProps {
   nodeName?: string;
-  nodeType?: string;
   className?: string;
 }
 
 const SelectedNodeIndicator: React.FC<SelectedNodeIndicatorProps> = ({
   nodeName,
-  nodeType,
   className = ''
 }) => {
   if (!nodeName) return null;

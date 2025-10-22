@@ -17,7 +17,7 @@ const NodeHandles: React.FC<NodeHandlesProps> = ({ type, compact = false }) => {
       {type !== 'START' && (
         <Handle 
           type="target" 
-          position={Position.Top} 
+          position={Position.Left} 
           className={handleClass}
         />
       )}
@@ -28,24 +28,24 @@ const NodeHandles: React.FC<NodeHandlesProps> = ({ type, compact = false }) => {
         <>
           <Handle 
             type="source" 
-            position={Position.Bottom} 
+            position={Position.Right} 
             id="true"
-            className={`!bg-green-500 !border-white ${handleSize} !left-[30%]`}
-            style={{ left: '30%' }}
+            className={`!bg-green-500 !border-white ${handleSize} !top-[30%]`}
+            style={{ top: '30%' }}
           />
           <Handle 
             type="source" 
-            position={Position.Bottom} 
+            position={Position.Right} 
             id="false"
-            className={`!bg-red-500 !border-white ${handleSize} !left-[70%]`}
-            style={{ left: '70%' }}
+            className={`!bg-red-500 !border-white ${handleSize} !top-[70%]`}
+            style={{ top: '70%' }}
           />
         </>
       ) : type !== 'END' ? (
         // Regular nodes have one output handle
         <Handle 
           type="source" 
-          position={Position.Bottom} 
+          position={Position.Right} 
           className={handleClass}
         />
       ) : null}
