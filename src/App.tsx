@@ -41,20 +41,20 @@ function App() {
           <main className="flex-1">
             <Routes>
               {/* Default redirect */}
-              <Route path="/" element={<Navigate to="/workflows" replace />} />
-              
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+              {/* Dashboard */}
+              <Route path="/dashboard" element={<DashboardPage />} />
+
               {/* Workflows */}
               <Route path="/workflows" element={<WorkflowsPage />} />
               <Route path="/workflows/new" element={<WorkflowAuthoringPage />} />
               <Route path="/workflows/:id" element={<WorkflowDetailPage />} />
               <Route path="/workflows/:id/edit" element={<WorkflowAuthoringPage />} />
-              
+
               {/* Executions */}
               <Route path="/executions" element={<ExecutionsPage />} />
               <Route path="/executions/:id" element={<ExecutionDetailPage />} />
-              
-              {/* Dashboard */}
-              <Route path="/dashboard" element={<DashboardPage />} />
               
               {/* APIs */}
               <Route path="/apis" element={<ApisPage />} />
