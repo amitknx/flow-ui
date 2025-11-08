@@ -120,7 +120,37 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
 
   const handleNodesChange = useCallback((changes: any) => {
     onNodesChange(changes);
-  }, [onNodesChange]);
+
+    // Propagate position changes to parent in authoring mode
+    if (mode === 'authoring' && workflow && onWorkflowChange) {
+      const positionChanges = changes.filter((c: any) => c.type === 'position' && c.dragging === false);
+
+      if (positionChanges.length > 0) {
+        // Get the updated nodes from React Flow's state after the change is applied
+        // We need to use a timeout to ensure the state has been updated
+        setTimeout(() => {
+          setNodes((currentNodes) => {
+            // Extract updated positions from React Flow's internal state
+            const updatedWorkflowNodes = workflow.nodes.map(node => {
+              const reactFlowNode = currentNodes.find(n => n.id === node.id);
+              if (reactFlowNode && reactFlowNode.position) {
+                return {
+                  ...node,
+                  position: reactFlowNode.position,
+                };
+              }
+              return node;
+            });
+
+            // Notify parent component of the change
+            onWorkflowChange(updatedWorkflowNodes, workflow.edges);
+
+            return currentNodes;
+          });
+        }, 0);
+      }
+    }
+  }, [onNodesChange, mode, workflow, onWorkflowChange, setNodes]);
 
   const handleEdgesChange = useCallback((changes: any) => {
     onEdgesChange(changes);

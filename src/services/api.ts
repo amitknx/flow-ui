@@ -1,10 +1,13 @@
-import { z } from 'zod';
-import type { 
-  WorkflowDefinition, 
-  WorkflowExecution, 
-  StepExecution, 
+import type {
+  WorkflowDefinition,
+  WorkflowExecution,
+  StepExecution,
   IngestionEvent,
-  ExecutionSnapshot 
+  ExecutionSnapshot,
+  ExecutionCreateRequest,
+  ExecutionStatusResponse,
+  PaginatedResponse,
+  ExecutionFilters
 } from '../types/workflow';
 
 // API Configuration
@@ -175,14 +178,56 @@ export class WorkflowApi {
   async deleteWorkflow(id: string): Promise<void> {
     return this.client.delete<void>(`/api/v1/workflows/${id}`);
   }
+  
+}
 
-  // Execution APIs
-  async executeWorkflow(id: string, input?: Record<string, any>): Promise<{ executionId: string }> {
-    return this.client.post<{ executionId: string }>(`/api/v1/workflows/${id}/execute`, { input });
+export class ExecutionApi {
+  constructor(private client: ApiClient = new ApiClient()) {}
+
+  async createExecution(request: ExecutionCreateRequest): Promise<WorkflowExecution> {
+    return this.client.post<WorkflowExecution>('/api/v1/executions', request);
   }
 
   async getExecution(id: string): Promise<WorkflowExecution> {
     return this.client.get<WorkflowExecution>(`/api/v1/executions/${id}`);
+  }
+
+  async getExecutionStatus(id: string): Promise<ExecutionStatusResponse> {
+    return this.client.get<ExecutionStatusResponse>(`/api/v1/executions/${id}/status`);
+  }
+
+  async getAllExecutions(params?: ExecutionFilters): Promise<PaginatedResponse<WorkflowExecution>> {
+    const queryParams = new URLSearchParams();
+
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    if (params?.status) queryParams.append('status', params.status);
+
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/api/v1/executions?${queryString}` : '/api/v1/executions';
+
+    return this.client.get<PaginatedResponse<WorkflowExecution>>(endpoint);
+  }
+
+  async getExecutionsByWorkflow(
+    workflowId: string,
+    params?: { page?: number; size?: number }
+  ): Promise<PaginatedResponse<WorkflowExecution>> {
+    const queryParams = new URLSearchParams();
+
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+
+    const queryString = queryParams.toString();
+    const endpoint = queryString
+      ? `/api/v1/executions/workflows/${workflowId}?${queryString}`
+      : `/api/v1/executions/workflows/${workflowId}`;
+
+    return this.client.get<PaginatedResponse<WorkflowExecution>>(endpoint);
+  }
+
+  async cancelExecution(id: string): Promise<WorkflowExecution> {
+    return this.client.post<WorkflowExecution>(`/api/v1/executions/${id}/cancel`);
   }
 
   async getExecutionSteps(id: string): Promise<StepExecution[]> {
@@ -191,10 +236,6 @@ export class WorkflowApi {
 
   async getExecutionSnapshot(id: string): Promise<ExecutionSnapshot> {
     return this.client.get<ExecutionSnapshot>(`/api/v1/executions/${id}/snapshot`);
-  }
-
-  async getWorkflowExecutions(workflowId: string): Promise<WorkflowExecution[]> {
-    return this.client.get<WorkflowExecution[]>(`/api/v1/workflows/${workflowId}/executions`);
   }
 }
 
@@ -212,5 +253,6 @@ export class IngestionApi {
 
 // Export singleton instances
 export const workflowApi = new WorkflowApi();
+export const executionApi = new ExecutionApi();
 export const ingestionApi = new IngestionApi();
 export { ApiError };

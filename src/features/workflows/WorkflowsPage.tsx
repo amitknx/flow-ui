@@ -16,7 +16,7 @@ import {
   X
 } from 'lucide-react';
 
-import { workflowApi } from '../../services/api';
+import { workflowApi, executionApi } from '../../services/api';
 import { formatDate } from '../../utils';
 import { LoadingSpinner, ErrorState, EmptyState } from '../../components/ui';
 
@@ -86,9 +86,12 @@ const WorkflowsPage: React.FC = () => {
 
   const handleExecuteWorkflow = async (workflowId: string) => {
     try {
-      const result = await workflowApi.executeWorkflow(workflowId);
+      const result = await executionApi.createExecution({
+        workflowId,
+        triggerType: 'MANUAL',
+      });
       console.log('Workflow executed:', result);
-      navigate(`/executions/${result.executionId}`);
+      navigate(`/executions/${result.id}`);
     } catch (error) {
       console.error('Failed to execute workflow:', error);
     }

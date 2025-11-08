@@ -17,6 +17,7 @@ interface AuthoringCanvasProps {
   onCanvasClick?: () => void;
   onAddNode?: (type: NodeType, position?: { x: number; y: number }) => void;
   nodeActionHandler?: NodeActionHandler;
+  onWorkflowChange?: () => void;
 }
 
 const AuthoringCanvasInternal: React.FC<AuthoringCanvasProps> = ({
@@ -26,6 +27,7 @@ const AuthoringCanvasInternal: React.FC<AuthoringCanvasProps> = ({
   onCanvasClick,
   onAddNode,
   nodeActionHandler,
+  onWorkflowChange,
 }) => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -107,6 +109,8 @@ const AuthoringCanvasInternal: React.FC<AuthoringCanvasProps> = ({
               nodes,
               edges,
             });
+            // Notify parent that workflow has changed
+            onWorkflowChange?.();
           }
         }}
         nodeActionHandler={nodeActionHandler}

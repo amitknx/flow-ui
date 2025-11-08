@@ -13,7 +13,7 @@ import {
 
 import WorkflowCanvas from '../../components/workflow/WorkflowCanvas';
 import Sidebar from '../../components/layout/Sidebar';
-import { workflowApi } from '../../services/api';
+import { workflowApi, executionApi } from '../../services/api';
 import { useWorkflowStore } from '../../stores/workflow';
 
 const WorkflowDetailPage: React.FC = () => {
@@ -52,10 +52,13 @@ const WorkflowDetailPage: React.FC = () => {
 
   const handleExecute = async () => {
     if (!currentWorkflow) return;
-    
+
     try {
-      const result = await workflowApi.executeWorkflow(currentWorkflow.id);
-      navigate(`/executions/${result.executionId}`);
+      const result = await executionApi.createExecution({
+        workflowId: currentWorkflow.id,
+        triggerType: 'MANUAL',
+      });
+      navigate(`/executions/${result.id}`);
     } catch (error) {
       console.error('Failed to execute workflow:', error);
     }

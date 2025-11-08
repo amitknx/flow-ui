@@ -18,7 +18,7 @@ import NodePalette from '../../components/workflow/NodePalette';
 import Sidebar from '../../components/layout/Sidebar';
 import KeyboardShortcutHelp from '../../components/ui/KeyboardShortcutHelp';
 import SelectedNodeIndicator from '../../components/ui/SelectedNodeIndicator';
-import { workflowApi } from '../../services/api';
+import { workflowApi, executionApi } from '../../services/api';
 import { useWorkflowStore } from '../../stores/workflow';
 import { useKeyboardShortcuts, createDuplicateShortcut, createDeleteShortcut, isMac } from '../../hooks/useKeyboardShortcuts';
 import { generateWorkflowName } from '../../utils/formatters';
@@ -138,8 +138,11 @@ const WorkflowAuthoringPage: React.FC = () => {
     }
     
     try {
-      const result = await workflowApi.executeWorkflow(currentWorkflow.id);
-      navigate(`/executions/${result.executionId}`);
+      const result = await executionApi.createExecution({
+        workflowId: currentWorkflow.id,
+        triggerType: 'MANUAL',
+      });
+      navigate(`/executions/${result.id}`);
     } catch (error) {
       console.error('Failed to execute workflow:', error);
     }
@@ -454,6 +457,7 @@ const WorkflowAuthoringPage: React.FC = () => {
             }}
             onAddNode={handleAddNode}
             nodeActionHandler={nodeActionHandler}
+            onWorkflowChange={() => setHasUnsavedChanges(true)}
           />
         </div>
 

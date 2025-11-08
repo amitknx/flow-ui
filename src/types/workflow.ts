@@ -134,3 +134,36 @@ export interface IngestionEvent {
     attributes?: Record<string, any>;
   };
 }
+
+export interface ExecutionCreateRequest {
+  workflowId: string;
+  triggerType: TriggerType;
+  triggerInput?: Record<string, any>;
+  correlationId?: string;
+}
+
+export interface ExecutionStatusResponse {
+  id: string;
+  status: WorkflowStatus;
+  startedAt: string;
+  endedAt?: string;
+  duration?: number;
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+export interface ExecutionFilters {
+  workflowId?: string;
+  status?: WorkflowStatus;
+  page?: number;
+  size?: number;
+}

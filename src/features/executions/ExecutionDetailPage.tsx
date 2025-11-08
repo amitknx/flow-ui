@@ -1,25 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  ArrowLeft, 
-  RefreshCw, 
+import {
+  ArrowLeft,
+  RefreshCw,
   Eye,
   EyeOff,
-  Play,
   CheckCircle,
   XCircle,
   Clock,
-  Pause
+  Pause,
+  StopCircle
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
 import WorkflowCanvas from '../../components/workflow/WorkflowCanvas';
 import Sidebar from '../../components/layout/Sidebar';
-import { workflowApi } from '../../services/api';
+import { executionApi } from '../../services/api';
 import { webSocketService } from '../../services/websocket';
 import { useWorkflowStore } from '../../stores/workflow';
-import type { ExecutionSnapshot, WorkflowStatus } from '../../types/workflow';
+import { useCancelExecution } from './hooks';
+import type { ExecutionSnapshot } from '../../types/workflow';
 
 const statusConfig = {
   PENDING: { 
@@ -53,9 +54,9 @@ const ExecutionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isConnected, setIsConnected] = useState(false);
-  
-  const { 
-    currentExecution,
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const {
     executionSnapshot,
     setCurrentExecution,
     setExecutionSnapshot,
@@ -66,29 +67,31 @@ const ExecutionDetailPage: React.FC = () => {
     resetExecution
   } = useWorkflowStore();
 
+  const cancelExecutionMutation = useCancelExecution();
+
   // Fetch execution data
-  const { 
-    data: execution, 
-    isLoading, 
+  const {
+    data: execution,
+    isLoading,
     error,
     refetch
   } = useQuery({
     queryKey: ['execution', id],
-    queryFn: () => id ? workflowApi.getExecution(id) : null,
+    queryFn: () => id ? executionApi.getExecution(id) : null,
     enabled: !!id,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Auto-refresh running executions every 5 seconds
-      return data?.status === 'RUNNING' ? 5000 : false;
+      return query.state.data?.status === 'RUNNING' ? 5000 : false;
     },
   });
 
   // Fetch execution snapshot
   const { data: snapshot } = useQuery({
     queryKey: ['execution-snapshot', id],
-    queryFn: () => id ? workflowApi.getExecutionSnapshot(id) : null,
+    queryFn: () => id ? executionApi.getExecutionSnapshot(id) : null,
     enabled: !!id,
-    refetchInterval: (data) => {
-      return data?.summary.status === 'RUNNING' ? 3000 : false;
+    refetchInterval: (query) => {
+      return query.state.data?.summary.status === 'RUNNING' ? 3000 : false;
     },
   });
 
@@ -157,6 +160,17 @@ const ExecutionDetailPage: React.FC = () => {
     return new Date(timestamp).toLocaleString();
   };
 
+  const handleCancelExecution = async () => {
+    if (!id) return;
+
+    try {
+      await cancelExecutionMutation.mutateAsync(id);
+      setShowCancelConfirm(false);
+    } catch (error) {
+      console.error('Failed to cancel execution:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -214,7 +228,7 @@ const ExecutionDetailPage: React.FC = () => {
                 )}>
                   <StatusIcon className={clsx(
                     'w-3 h-3 mr-1',
-                    statusInfo.animate && 'animate-pulse'
+                    'animate' in statusInfo && statusInfo.animate && 'animate-pulse'
                   )} />
                   {statusInfo.label}
                 </div>
@@ -242,6 +256,18 @@ const ExecutionDetailPage: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-2">
+            {/* Cancel Execution Button */}
+            {execution.status === 'RUNNING' && (
+              <button
+                onClick={() => setShowCancelConfirm(true)}
+                disabled={cancelExecutionMutation.isPending}
+                className="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+              >
+                <StopCircle className="w-4 h-4" />
+                <span>Cancel</span>
+              </button>
+            )}
+
             {/* Connection Status */}
             <div className="flex items-center space-x-2 text-xs text-gray-500">
               <div className={clsx(
@@ -278,7 +304,7 @@ const ExecutionDetailPage: React.FC = () => {
           executionSnapshot={executionSnapshot || undefined}
           mode="execution"
           className="h-full"
-          onNodeClick={(nodeId) => {
+          onNodeClick={() => {
             if (!sidebarOpen) setSidebarOpen(true);
           }}
         />
@@ -289,6 +315,46 @@ const ExecutionDetailPage: React.FC = () => {
           onClose={() => setSidebarOpen(false)}
         />
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Cancel Execution
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to cancel this execution? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                disabled={cancelExecutionMutation.isPending}
+                className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                No, Keep Running
+              </button>
+              <button
+                onClick={handleCancelExecution}
+                disabled={cancelExecutionMutation.isPending}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+              >
+                {cancelExecutionMutation.isPending ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Canceling...</span>
+                  </>
+                ) : (
+                  <>
+                    <StopCircle className="w-4 h-4" />
+                    <span>Yes, Cancel</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
