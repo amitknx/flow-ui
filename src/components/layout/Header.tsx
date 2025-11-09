@@ -10,7 +10,7 @@ const Header: React.FC = () => {
     { name: 'Dashboard', href: '/dashboard', icon: BarChart3, current: location.pathname === '/dashboard' },
     { name: 'Workflows', href: '/workflows', icon: Workflow, current: location.pathname.startsWith('/workflows') },
     { name: 'Executions', href: '/executions', icon: Play, current: location.pathname.startsWith('/executions') },
-    { name: 'APIs', href: '/apis', icon: Globe, current: location.pathname.startsWith('/apis') || location.pathname.startsWith('/secret-stores') },
+    { name: 'APIs', href: '/apis', icon: Globe, current: location.pathname.startsWith('/apis') || location.pathname.startsWith('/credentials') || location.pathname.startsWith('/secret-stores') },
   ];
 
   return (

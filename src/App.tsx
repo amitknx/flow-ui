@@ -12,8 +12,11 @@ import ExecutionDetailPage from './features/executions/ExecutionDetailPage';
 import DashboardPage from './features/dashboard/DashboardPage';
 import { ApisPage } from './features/apis/ApisPage';
 import { ApiCreatePage } from './features/apis/ApiCreatePage';
+import { ApiDetailPage } from './features/apis/ApiDetailPage';
+import { ApiEditPage } from './features/apis/ApiEditPage';
 import { SecretStoresPage } from './features/secret-stores/SecretStoresPage';
 import { SecretStoreCreatePage } from './features/secret-stores/SecretStoreCreatePage';
+import SecretsPage from './features/secrets/SecretsPage';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -59,7 +62,12 @@ function App() {
               {/* APIs */}
               <Route path="/apis" element={<ApisPage />} />
               <Route path="/apis/new" element={<ApiCreatePage />} />
-              
+              <Route path="/apis/:id/edit" element={<ApiEditPage />} />
+              <Route path="/apis/:id" element={<ApiDetailPage />} />
+
+              {/* Secrets */}
+              <Route path="/secrets" element={<SecretsPage />} />
+
               {/* Secret Stores */}
               <Route path="/secret-stores" element={<SecretStoresPage />} />
               <Route path="/secret-stores/new" element={<SecretStoreCreatePage />} />

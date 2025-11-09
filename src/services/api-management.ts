@@ -15,7 +15,7 @@ import type {
 class ApiClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = '/api') {
+  constructor(baseUrl: string = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080') {
     this.baseUrl = baseUrl;
   }
 
@@ -89,49 +89,50 @@ export class ApiManagementService {
    * Get all API configurations
    */
   async getApis(): Promise<ApiConfig[]> {
-    return this.client.get<ApiConfig[]>('/apis');
+    const response = await this.client.get<{ content: ApiConfig[] }>('/api/v1/apis');
+    return response.content || [];
   }
 
   /**
    * Get API configuration by ID
    */
   async getApi(id: string): Promise<ApiConfig> {
-    return this.client.get<ApiConfig>(`/apis/${id}`);
+    return this.client.get<ApiConfig>(`/api/v1/apis/${id}`);
   }
 
   /**
    * Create new API configuration
    */
   async createApi(api: Omit<ApiConfig, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>): Promise<ApiConfig> {
-    return this.client.post<ApiConfig>('/apis', api);
+    return this.client.post<ApiConfig>('/api/v1/apis', api);
   }
 
   /**
    * Update API configuration
    */
   async updateApi(id: string, api: Partial<ApiConfig>): Promise<ApiConfig> {
-    return this.client.put<ApiConfig>(`/apis/${id}`, api);
+    return this.client.put<ApiConfig>(`/api/v1/apis/${id}`, api);
   }
 
   /**
    * Delete API configuration
    */
   async deleteApi(id: string): Promise<void> {
-    return this.client.delete<void>(`/apis/${id}`);
+    return this.client.delete<void>(`/api/v1/apis/${id}`);
   }
 
   /**
    * Test API connection
    */
   async testApi(request: ApiTestRequest): Promise<ApiTestResult> {
-    return this.client.post<ApiTestResult>('/apis/test', request);
+    return this.client.post<ApiTestResult>('/api/v1/apis/test', request);
   }
 
   /**
    * Get API usage statistics
    */
   async getApiUsageStats(id: string): Promise<ApiUsageStats> {
-    return this.client.get<ApiUsageStats>(`/apis/${id}/stats`);
+    return this.client.get<ApiUsageStats>(`/api/v1/apis/${id}/stats`);
   }
 
   /**
@@ -143,28 +144,28 @@ export class ApiManagementService {
     if (tags?.length) {
       tags.forEach(tag => params.append('tags', tag));
     }
-    return this.client.get<ApiConfig[]>(`/apis/search?${params.toString()}`);
+    return this.client.get<ApiConfig[]>(`/api/v1/apis/search?${params.toString()}`);
   }
 
   /**
    * Duplicate API configuration
    */
   async duplicateApi(id: string, newName: string): Promise<ApiConfig> {
-    return this.client.post<ApiConfig>(`/apis/${id}/duplicate`, { name: newName });
+    return this.client.post<ApiConfig>(`/api/v1/apis/${id}/duplicate`, { name: newName });
   }
 
   /**
    * Export API configuration
    */
   async exportApi(id: string, format: 'json' | 'openapi' | 'postman' = 'json'): Promise<any> {
-    return this.client.get<any>(`/apis/${id}/export?format=${format}`);
+    return this.client.get<any>(`/api/v1/apis/${id}/export?format=${format}`);
   }
 
   /**
    * Import API configuration
    */
   async importApi(data: any, format: 'json' | 'openapi' | 'postman' = 'json'): Promise<ApiConfig> {
-    return this.client.post<ApiConfig>(`/apis/import?format=${format}`, data);
+    return this.client.post<ApiConfig>(`/api/v1/apis/import?format=${format}`, data);
   }
 }
 
@@ -183,14 +184,14 @@ export class SecretStoreService {
    * Get all secret store configurations
    */
   async getSecretStores(): Promise<SecretStoreConfig[]> {
-    return this.client.get<SecretStoreConfig[]>('/secret-stores');
+    return this.client.get<SecretStoreConfig[]>('/api/v1/secret-stores');
   }
 
   /**
    * Get secret store configuration by ID
    */
   async getSecretStore(id: string): Promise<SecretStoreConfig> {
-    return this.client.get<SecretStoreConfig>(`/secret-stores/${id}`);
+    return this.client.get<SecretStoreConfig>(`/api/v1/secret-stores/${id}`);
   }
 
   /**
@@ -199,28 +200,28 @@ export class SecretStoreService {
   async createSecretStore(
     store: Omit<SecretStoreConfig, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>
   ): Promise<SecretStoreConfig> {
-    return this.client.post<SecretStoreConfig>('/secret-stores', store);
+    return this.client.post<SecretStoreConfig>('/api/v1/secret-stores', store);
   }
 
   /**
    * Update secret store configuration
    */
   async updateSecretStore(id: string, store: Partial<SecretStoreConfig>): Promise<SecretStoreConfig> {
-    return this.client.put<SecretStoreConfig>(`/secret-stores/${id}`, store);
+    return this.client.put<SecretStoreConfig>(`/api/v1/secret-stores/${id}`, store);
   }
 
   /**
    * Delete secret store configuration
    */
   async deleteSecretStore(id: string): Promise<void> {
-    return this.client.delete<void>(`/secret-stores/${id}`);
+    return this.client.delete<void>(`/api/v1/secret-stores/${id}`);
   }
 
   /**
    * Test secret store connection
    */
   async testSecretStore(id: string): Promise<SecretStoreTestResult> {
-    return this.client.post<SecretStoreTestResult>(`/secret-stores/${id}/test`);
+    return this.client.post<SecretStoreTestResult>(`/api/v1/secret-stores/${id}/test`);
   }
 
   /**
@@ -228,7 +229,7 @@ export class SecretStoreService {
    */
   async listSecrets(id: string, path?: string): Promise<string[]> {
     const params = path ? `?path=${encodeURIComponent(path)}` : '';
-    return this.client.get<string[]>(`/secret-stores/${id}/secrets${params}`);
+    return this.client.get<string[]>(`/api/v1/secret-stores/${id}/secrets${params}`);
   }
 
   /**
@@ -236,7 +237,7 @@ export class SecretStoreService {
    */
   async getSecretValue(id: string, path: string, key?: string): Promise<any> {
     const params = key ? `?key=${encodeURIComponent(key)}` : '';
-    return this.client.get<any>(`/secret-stores/${id}/secrets/${encodeURIComponent(path)}${params}`);
+    return this.client.get<any>(`/api/v1/secret-stores/${id}/secrets/${encodeURIComponent(path)}${params}`);
   }
 
   /**
@@ -245,7 +246,7 @@ export class SecretStoreService {
   async validateSecretPath(id: string, path: string, key?: string): Promise<boolean> {
     try {
       const params = key ? `?key=${encodeURIComponent(key)}` : '';
-      await this.client.get(`/secret-stores/${id}/secrets/${encodeURIComponent(path)}/validate${params}`);
+      await this.client.get(`/api/v1/secret-stores/${id}/secrets/${encodeURIComponent(path)}/validate${params}`);
       return true;
     } catch {
       return false;

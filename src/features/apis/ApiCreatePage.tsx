@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
 import { ApiConfigForm } from '../../components/api';
-import { useCreateApi } from '../../hooks/useApiManagement';
+import { useCreateApi } from '../../features/apis-new/hooks/useApiManagement';
+import { transformApiFormToDto } from '../../utils/api-helpers';
 import type { ApiConfig } from '../../types/api';
 
 /**
@@ -17,10 +18,15 @@ export const ApiCreatePage: React.FC = () => {
 
   const handleSave = async (config: Partial<ApiConfig>) => {
     try {
-      const newApi = await createApi.mutateAsync(config as Omit<ApiConfig, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>);
-      navigate(`/apis/${newApi.id}`);
+      // Transform form data to backend DTO format
+      const dto = transformApiFormToDto(config);
+      await createApi.mutateAsync(dto);
+      // Navigate back to APIs list page (no detail page yet)
+      navigate('/apis');
     } catch (error) {
       console.error('Failed to create API:', error);
+      // Show error to user
+      alert(`Failed to create API: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
