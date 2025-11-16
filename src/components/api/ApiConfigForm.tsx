@@ -26,12 +26,15 @@ import { LoadingSpinner } from '../ui';
  * Zod schema for API configuration validation
  */
 const apiConfigSchema = z.object({
+  id: z.string().optional(), // For updates
+  versionNum: z.number().optional(), // For optimistic locking
   name: z.string().min(1, 'API name is required').max(100, 'API name too long'),
   description: z.string().max(500, 'Description too long').optional(),
   baseUrl: z.string().url('Must be a valid URL'),
   version: z.string().max(20, 'Version too long').optional(),
+  secretId: z.string().optional(), // Secret reference
   authentication: z.object({
-    type: z.enum(['none', 'basic', 'bearer', 'api_key', 'oauth2', 'custom']),
+    type: z.enum(['NONE', 'BASIC', 'BEARER', 'API_KEY', 'OAUTH2', 'CUSTOM']),
   }).passthrough(),
   defaultHeaders: z.array(z.object({
     name: z.string().min(1, 'Header name is required'),
@@ -45,7 +48,8 @@ const apiConfigSchema = z.object({
     description: z.string().optional(),
   })),
   endpoints: z.array(z.object({
-    id: z.string(),
+    id: z.string().optional(), // For updates (omitted for new endpoints)
+    versionNum: z.number().optional(), // For optimistic locking
     name: z.string().min(1, 'Endpoint name is required'),
     description: z.string().optional(),
     method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']),

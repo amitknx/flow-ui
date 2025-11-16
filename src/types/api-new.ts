@@ -26,7 +26,8 @@ export interface ParameterDefinition {
  */
 export interface ApiEndpoint {
   id: string;
-  apiId: string;
+  apiId?: string;
+  versionNum?: number; // Backend version number for optimistic locking
   name: string;
   httpMethod: HttpMethod;
   endpointPath: string;
@@ -35,7 +36,7 @@ export interface ApiEndpoint {
   // Parameters
   pathParams?: Record<string, ParameterDefinition>;
   queryParams?: Record<string, ParameterDefinition>;
-  headers?: Record<string, ParameterDefinition>;
+  headers?: Record<string, ParameterDefinition> | Record<string, string>; // Can be string values
 
   // Request/Response
   requestBodyTemplate?: any;
@@ -48,6 +49,9 @@ export interface ApiEndpoint {
     maxRetries: number;
     backoffStrategy?: 'linear' | 'exponential';
     retryDelayMs?: number;
+    backoffMs?: number; // Backend uses this
+    exponentialBackoff?: boolean; // Backend uses this
+    retryableStatuses?: number[];
   };
 
   // Metadata
@@ -63,6 +67,7 @@ export interface Api {
   id: string;
   name: string;
   version?: string;
+  versionNum?: number; // Backend version number for optimistic locking
   baseUrl: string;
   description?: string;
 
@@ -88,6 +93,7 @@ export interface Api {
 
   // Summary data
   endpointCount?: number; // Number of endpoints (from list view)
+  endpoints?: ApiEndpoint[]; // Full endpoints data (from detail view)
 
   // Metadata
   createdAt: string;

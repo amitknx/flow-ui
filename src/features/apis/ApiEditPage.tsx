@@ -40,11 +40,14 @@ export const ApiEditPage: React.FC = () => {
       // Merge API data with endpoints for the form
       const mergedData = {
         ...api,
+        // Include versionNum for optimistic locking
+        versionNum: api.versionNum,
         // Set default authentication if null
-        authentication: api.authentication || { type: 'none' },
+        authentication: api.authentication || { type: 'NONE' },
         // Convert endpoints to form format
         endpoints: data.map(endpoint => ({
           id: endpoint.id,
+          versionNum: endpoint.versionNum, // Include endpoint versionNum
           name: endpoint.name,
           description: endpoint.description,
           method: endpoint.httpMethod,

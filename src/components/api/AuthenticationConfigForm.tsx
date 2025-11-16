@@ -349,15 +349,15 @@ export const AuthenticationConfigForm: React.FC<AuthenticationConfigFormProps> =
         control={control}
         render={({ field }) => {
           switch (field.value) {
-            case 'basic':
+            case 'BASIC':
               return renderBasicAuth();
-            case 'bearer':
+            case 'BEARER':
               return renderBearerAuth();
-            case 'api_key':
+            case 'API_KEY':
               return renderApiKeyAuth();
-            case 'oauth2':
+            case 'OAUTH2':
               return renderOAuth2Auth();
-            case 'custom':
+            case 'CUSTOM':
               return renderCustomAuth();
             default:
               return null;

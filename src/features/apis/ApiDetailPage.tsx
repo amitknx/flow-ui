@@ -18,6 +18,7 @@ import { useApi, useDeleteApi, useCreateApi } from '../apis-new/hooks/useApiMana
 import { apiEndpointService } from '../../services/api-new-service';
 import { formatDate } from '../../utils/formatters';
 import { LoadingSpinner, ErrorState } from '../../components/ui';
+import { TestEndpointModal } from '../../components/api';
 import { transformApiFormToDto } from '../../utils/api-helpers';
 import type { ApiEndpoint } from '../../types/api-new';
 
@@ -38,6 +39,7 @@ export const ApiDetailPage: React.FC = () => {
   const [testing, setTesting] = useState(false);
   const [cloning, setCloning] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showTestModal, setShowTestModal] = useState(false);
 
   // Load endpoints when API is loaded
   React.useEffect(() => {
@@ -119,27 +121,57 @@ export const ApiDetailPage: React.FC = () => {
     }
   };
 
-  const handleTestEndpoint = async (endpoint: ApiEndpoint) => {
+  const handleTestEndpoint = (endpoint: ApiEndpoint) => {
     setSelectedEndpoint(endpoint);
+    setTestResult(null);
+    setShowTestModal(true);
+  };
+
+  const handleExecuteTest = async (params: {
+    pathParams?: Record<string, string>;
+    queryParams?: Record<string, string>;
+    overrideAuthentication?: any;
+  }) => {
+    if (!selectedEndpoint) return;
+
     setTesting(true);
     setTestResult(null);
 
     try {
-      // TODO: Implement actual endpoint testing
-      // For now, just simulate a test
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the real backend API to execute the endpoint
+      const response = await apiEndpointService.executeEndpoint(selectedEndpoint.id, params);
+
+      // Parse the actual API execution result from the backend response
+      // Backend returns metadata about the external API call
       setTestResult({
-        success: true,
-        status: 200,
-        statusText: 'OK',
-        data: { message: 'Test successful' },
-        responseTime: Math.floor(Math.random() * 500) + 100,
+        success: response.status === 'SUCCESS',
+        status: response.httpStatusCode,
+        statusText: response.httpStatusText,
+        error: response.errorMessage,
+        data: response.responseBody,
+        responseTime: response.durationMs,
+        requestUrl: response.requestUrl,
+        httpMethod: response.httpMethod,
+        requestTimestamp: response.requestTimestamp,
+        responseTimestamp: response.responseTimestamp,
+        responseHeaders: response.responseHeaders,
       });
-    } catch (error) {
+
+      // Close modal after test execution
+      setShowTestModal(false);
+    } catch (error: any) {
+      // This handles errors from the backend API itself (not the external API)
       setTestResult({
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        status: error.status || 500,
+        statusText: 'Backend Error',
+        error: error.message || 'Failed to execute test - backend error',
+        data: error.response,
+        responseTime: 0,
       });
+
+      // Close modal even on error so user can see results
+      setShowTestModal(false);
     } finally {
       setTesting(false);
     }
@@ -401,11 +433,30 @@ export const ApiDetailPage: React.FC = () => {
 
               {testResult && (
                 <div className="space-y-4">
+                  {/* Request Info */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Endpoint</h3>
-                    <p className="text-xs font-mono text-gray-600">{selectedEndpoint?.name}</p>
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">Request</h3>
+                    <div className="text-xs space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-500">Method:</span>
+                        <span className="font-mono text-gray-900">{testResult.httpMethod || selectedEndpoint?.httpMethod}</span>
+                      </div>
+                      {testResult.requestUrl && (
+                        <div>
+                          <span className="font-medium text-gray-500">URL:</span>
+                          <p className="font-mono text-gray-900 break-all mt-1">{testResult.requestUrl}</p>
+                        </div>
+                      )}
+                      {testResult.requestTimestamp && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-500">Sent:</span>
+                          <span className="text-gray-900">{new Date(testResult.requestTimestamp).toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
+                  {/* Status */}
                   <div
                     className={`p-3 rounded-md border ${
                       testResult.success
@@ -419,7 +470,7 @@ export const ApiDetailPage: React.FC = () => {
                           testResult.success ? 'bg-green-200 text-green-900' : 'bg-red-200 text-red-900'
                         }`}
                       >
-                        {testResult.success ? 'SUCCESS' : 'FAILED'}
+                        {testResult.success ? 'SUCCESS' : 'ERROR'}
                       </span>
                       {testResult.status && (
                         <span className="text-xs font-medium text-gray-700">
@@ -428,20 +479,47 @@ export const ApiDetailPage: React.FC = () => {
                       )}
                     </div>
 
-                    {testResult.responseTime && (
-                      <p className="text-xs text-gray-600">Response time: {testResult.responseTime}ms</p>
+                    {testResult.responseTime !== undefined && (
+                      <p className="text-xs text-gray-600">Duration: {testResult.responseTime}ms</p>
+                    )}
+
+                    {testResult.responseTimestamp && (
+                      <p className="text-xs text-gray-600 mt-1">
+                        Received: {new Date(testResult.responseTimestamp).toLocaleString()}
+                      </p>
                     )}
 
                     {testResult.error && (
-                      <p className="text-xs text-red-700 mt-2">{testResult.error}</p>
+                      <div className="mt-2 pt-2 border-t border-red-300">
+                        <p className="text-xs font-medium text-red-900 mb-1">Error Message:</p>
+                        <p className="text-xs text-red-700">{testResult.error}</p>
+                      </div>
                     )}
                   </div>
 
+                  {/* Response Headers */}
+                  {testResult.responseHeaders && Object.keys(testResult.responseHeaders).length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">Response Headers</h3>
+                      <div className="text-xs bg-gray-50 p-3 rounded-md border border-gray-200 max-h-48 overflow-auto">
+                        {Object.entries(testResult.responseHeaders).map(([key, value]) => (
+                          <div key={key} className="mb-1">
+                            <span className="font-medium text-gray-700">{key}:</span>{' '}
+                            <span className="text-gray-600">{String(value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Response Body */}
                   {testResult.data && (
                     <div>
-                      <h3 className="text-sm font-medium text-gray-700 mb-2">Response</h3>
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">Response Body</h3>
                       <pre className="text-xs bg-gray-50 p-3 rounded-md overflow-auto max-h-96 border border-gray-200">
-                        {JSON.stringify(testResult.data, null, 2)}
+                        {typeof testResult.data === 'string'
+                          ? testResult.data
+                          : JSON.stringify(testResult.data, null, 2)}
                       </pre>
                     </div>
                   )}
@@ -451,6 +529,16 @@ export const ApiDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Test Endpoint Modal */}
+      {showTestModal && selectedEndpoint && (
+        <TestEndpointModal
+          endpoint={selectedEndpoint}
+          onClose={() => setShowTestModal(false)}
+          onTest={handleExecuteTest}
+          testing={testing}
+        />
+      )}
     </div>
   );
 };

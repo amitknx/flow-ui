@@ -140,7 +140,7 @@ export const ApisPage: React.FC = () => {
               </div>
             </div>
             
-            {api.tags.length > 0 && (
+            {api.tags && api.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-4">
                 {api.tags.map(tag => (
                   <span

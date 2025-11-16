@@ -198,6 +198,18 @@ export class ApiEndpointService {
   async deleteEndpoint(id: string): Promise<void> {
     return this.client.delete<void>(`/api/v1/endpoints/${id}`);
   }
+
+  // Execute endpoint for testing
+  async executeEndpoint(
+    endpointId: string,
+    params?: {
+      pathParams?: Record<string, string>;
+      queryParams?: Record<string, string>;
+      overrideAuthentication?: any;
+    }
+  ): Promise<any> {
+    return this.client.post<any>(`/api/v1/endpoints/${endpointId}/execute`, params);
+  }
 }
 
 // Export singleton instances

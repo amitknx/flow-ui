@@ -1,15 +1,15 @@
 
 
 /**
- * API Authentication types
+ * API Authentication types (backend uses uppercase)
  */
-export type AuthenticationType = 
-  | 'none' 
-  | 'basic' 
-  | 'bearer' 
-  | 'api_key' 
-  | 'oauth2' 
-  | 'custom';
+export type AuthenticationType =
+  | 'NONE'
+  | 'BASIC'
+  | 'BEARER'
+  | 'API_KEY'
+  | 'OAUTH2'
+  | 'CUSTOM';
 
 export type HttpMethod = 
   | 'GET' 
@@ -195,7 +195,7 @@ export interface HttpHeader {
  * API endpoint configuration
  */
 export interface ApiEndpoint {
-  id: string;
+  id?: string;
   name: string;
   description?: string;
   method: HttpMethod;

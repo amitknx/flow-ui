@@ -53,7 +53,6 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
 
   const addEndpoint = () => {
     const newEndpoint = {
-      id: `endpoint_${Date.now()}`,
       name: 'New Endpoint',
       description: '',
       method: 'GET' as HttpMethod,
