@@ -3,7 +3,6 @@ import type {
   WorkflowExecution,
   StepExecution,
   IngestionEvent,
-  ExecutionSnapshot,
   ExecutionCreateRequest,
   ExecutionStatusResponse,
   PaginatedResponse,
@@ -122,7 +121,7 @@ const transformWorkflowResponse = (response: WorkflowResponse): WorkflowDefiniti
 
 // API Services
 export class WorkflowApi {
-  constructor(private client: ApiClient = new ApiClient()) {}
+  constructor(private client: ApiClient = new ApiClient()) { }
 
   // Authoring APIs
   async createWorkflow(workflow: Omit<WorkflowDefinition, 'id' | 'createdAt' | 'createdBy'>): Promise<WorkflowDefinition> {
@@ -178,11 +177,11 @@ export class WorkflowApi {
   async deleteWorkflow(id: string): Promise<void> {
     return this.client.delete<void>(`/api/v1/workflows/${id}`);
   }
-  
+
 }
 
 export class ExecutionApi {
-  constructor(private client: ApiClient = new ApiClient()) {}
+  constructor(private client: ApiClient = new ApiClient()) { }
 
   async createExecution(request: ExecutionCreateRequest): Promise<WorkflowExecution> {
     return this.client.post<WorkflowExecution>('/api/v1/executions', request);
@@ -234,13 +233,13 @@ export class ExecutionApi {
     return this.client.get<StepExecution[]>(`/api/v1/executions/${id}/steps`);
   }
 
-  async getExecutionSnapshot(id: string): Promise<ExecutionSnapshot> {
-    return this.client.get<ExecutionSnapshot>(`/api/v1/executions/${id}/snapshot`);
+  async getExecutionSnapshot(id: string): Promise<WorkflowExecution> {
+    return this.client.get<WorkflowExecution>(`/api/v1/executions/${id}`);
   }
 }
 
 export class IngestionApi {
-  constructor(private client: ApiClient = new ApiClient()) {}
+  constructor(private client: ApiClient = new ApiClient()) { }
 
   async sendEvent(event: IngestionEvent): Promise<void> {
     return this.client.post<void>('/api/v1/events', event);

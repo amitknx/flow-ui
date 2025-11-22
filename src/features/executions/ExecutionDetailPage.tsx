@@ -20,33 +20,33 @@ import { executionApi } from '../../services/api';
 import { webSocketService } from '../../services/websocket';
 import { useWorkflowStore } from '../../stores/workflow';
 import { useCancelExecution } from './hooks';
-import type { ExecutionSnapshot } from '../../types/workflow';
+
 
 const statusConfig = {
-  PENDING: { 
-    icon: Pause, 
-    color: 'text-yellow-600', 
+  PENDING: {
+    icon: Pause,
+    color: 'text-yellow-600',
     bgColor: 'bg-yellow-50',
-    label: 'Pending' 
+    label: 'Pending'
   },
-  RUNNING: { 
-    icon: Clock, 
-    color: 'text-blue-600', 
+  RUNNING: {
+    icon: Clock,
+    color: 'text-blue-600',
     bgColor: 'bg-blue-50',
     label: 'Running',
     animate: true
   },
-  SUCCESS: { 
-    icon: CheckCircle, 
-    color: 'text-green-600', 
+  SUCCESS: {
+    icon: CheckCircle,
+    color: 'text-green-600',
     bgColor: 'bg-green-50',
-    label: 'Success' 
+    label: 'Success'
   },
-  FAILED: { 
-    icon: XCircle, 
-    color: 'text-red-600', 
+  FAILED: {
+    icon: XCircle,
+    color: 'text-red-600',
     bgColor: 'bg-red-50',
-    label: 'Failed' 
+    label: 'Failed'
   },
 };
 
@@ -59,8 +59,6 @@ const ExecutionDetailPage: React.FC = () => {
   const {
     executionSnapshot,
     setCurrentExecution,
-    setExecutionSnapshot,
-    updateExecutionSnapshot,
     sidebarOpen,
     setSidebarOpen,
     selectedNodeId,
@@ -85,15 +83,7 @@ const ExecutionDetailPage: React.FC = () => {
     },
   });
 
-  // Fetch execution snapshot
-  const { data: snapshot } = useQuery({
-    queryKey: ['execution-snapshot', id],
-    queryFn: () => id ? executionApi.getExecutionSnapshot(id) : null,
-    enabled: !!id,
-    refetchInterval: (query) => {
-      return query.state.data?.summary.status === 'RUNNING' ? 3000 : false;
-    },
-  });
+
 
   // Set up WebSocket connection for real-time updates
   useEffect(() => {
@@ -110,16 +100,11 @@ const ExecutionDetailPage: React.FC = () => {
           id
         );
 
-        // Listen for updates
-        const removeListener = webSocketService.addEventListener((message) => {
-          if (message.type === 'EXECUTION_UPDATE') {
-            updateExecutionSnapshot(message.payload as ExecutionSnapshot);
-          }
-        });
+        // Note: WebSocket updates for execution snapshot are disabled
+        // since we're using the REST API data directly
 
         return () => {
           unsubscribe();
-          removeListener();
         };
       } catch (error) {
         console.error('Failed to connect to WebSocket:', error);
@@ -133,7 +118,7 @@ const ExecutionDetailPage: React.FC = () => {
       cleanup.then(fn => fn?.());
       resetExecution();
     };
-  }, [execution, id, updateExecutionSnapshot, resetExecution]);
+  }, [execution, id, resetExecution]);
 
   // Update store when data changes
   useEffect(() => {
@@ -142,11 +127,7 @@ const ExecutionDetailPage: React.FC = () => {
     }
   }, [execution, setCurrentExecution]);
 
-  useEffect(() => {
-    if (snapshot) {
-      setExecutionSnapshot(snapshot);
-    }
-  }, [snapshot, setExecutionSnapshot]);
+
 
   const formatDuration = (ms?: number) => {
     if (!ms) return 'N/A';
@@ -214,13 +195,13 @@ const ExecutionDetailPage: React.FC = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            
+
             <div>
               <div className="flex items-center space-x-3">
                 <h1 className="text-xl font-semibold text-gray-900">
                   {execution.definitionSnapshot.name}
                 </h1>
-                
+
                 <div className={clsx(
                   'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
                   statusInfo.bgColor,
@@ -240,7 +221,7 @@ const ExecutionDetailPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
                 <span>Correlation ID: {execution.correlationId}</span>
                 <span>•</span>

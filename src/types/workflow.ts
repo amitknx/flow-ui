@@ -2,13 +2,13 @@ export type WorkflowStatus = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED';
 export type TriggerType = 'MANUAL' | 'API' | 'INGESTED';
 export type NodePhase = 'START' | 'UPDATE' | 'COMPLETE' | 'FAIL';
 
-export type NodeType = 
-  | 'START' 
-  | 'END' 
-  | 'HTTP_REQUEST' 
-  | 'DELAY' 
-  | 'CONDITIONAL' 
-  | 'JOIN' 
+export type NodeType =
+  | 'START'
+  | 'END'
+  | 'HTTP_REQUEST'
+  | 'DELAY'
+  | 'CONDITIONAL'
+  | 'JOIN'
   | 'SUB_WORKFLOW';
 
 export interface WorkflowDefinition {
@@ -64,6 +64,7 @@ export interface WorkflowExecution {
   startedAt: string;
   endedAt?: string;
   duration?: number;
+  stepExecutions?: StepExecution[];
 }
 
 export interface StepExecution {

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useWorkflowStore } from '../../../stores/workflow';
-import { apiManagementService } from '../../../services/api-management';
-import type { ApiConfig, ApiEndpoint } from '../../../types/api';
+import { useApis, useApi } from '../../../hooks/useApiManagement';
+
 
 interface HttpRequestConfigProps {
   nodeId: string;
@@ -18,17 +17,30 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
     data?.requestBody ? JSON.stringify(data.requestBody, null, 2) : ''
   );
 
-  const { data: apis, isLoading } = useQuery({
-    queryKey: ['apis'],
-    queryFn: () => apiManagementService.listApis(),
-  });
+  // Use the centralized hook for fetching APIs
+  const { data: apis, isLoading: isLoadingApis } = useApis();
 
-  const selectedApi = apis?.find(api => api.id === selectedApiId);
+  // Fetch full details for the selected API
+  const { data: selectedApiDetails, isLoading: isLoadingDetails } = useApi(selectedApiId);
+
+  // Use the detailed API data if available, otherwise fall back to the list item (which might be partial)
+  // In this architecture, list items seem to be full ApiConfig objects too, but useApi ensures we have the latest
+  const selectedApi = selectedApiDetails || apis?.find(api => api.id === selectedApiId);
+
   const selectedEndpoint = selectedApi?.endpoints.find(ep => ep.id === selectedEndpointId);
 
   useEffect(() => {
-    if (selectedApiId || selectedEndpointId || requestBody) {
-      const bodyData = requestBody ? JSON.parse(requestBody) : undefined;
+    // Only update if we have valid selections
+    // We allow empty requestBody
+    if (selectedApiId || selectedEndpointId) {
+      let bodyData = undefined;
+      try {
+        bodyData = requestBody ? JSON.parse(requestBody) : undefined;
+      } catch (e) {
+        // Invalid JSON, don't update body yet or handle error
+        // For now we just ignore invalid JSON in the store update
+      }
+
       updateNodeData(nodeId, {
         apiId: selectedApiId,
         endpointId: selectedEndpointId,
@@ -57,7 +69,7 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
           value={selectedApiId}
           onChange={(e) => handleApiChange(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-          disabled={isLoading}
+          disabled={isLoadingApis}
         >
           <option value="">Select an API...</option>
           {apis?.map((api) => (
@@ -66,47 +78,88 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
             </option>
           ))}
         </select>
-        {isLoading && (
+        {isLoadingApis && (
           <p className="text-xs text-gray-500">Loading APIs...</p>
         )}
       </div>
 
       {/* Endpoint Selection */}
-      {selectedApi && (
+      {selectedApiId && (
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
             Endpoint
           </label>
-          <select
-            value={selectedEndpointId}
-            onChange={(e) => setSelectedEndpointId(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-          >
-            <option value="">Select an endpoint...</option>
-            {selectedApi.endpoints.map((endpoint) => (
-              <option key={endpoint.id} value={endpoint.id}>
-                {endpoint.method} - {endpoint.name}
-              </option>
-            ))}
-          </select>
+          {isLoadingDetails ? (
+            <p className="text-xs text-gray-500">Loading API details...</p>
+          ) : (
+            <select
+              value={selectedEndpointId}
+              onChange={(e) => setSelectedEndpointId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              disabled={!selectedApi}
+            >
+              <option value="">Select an endpoint...</option>
+              {selectedApi?.endpoints.map((endpoint) => (
+                <option key={endpoint.id} value={endpoint.id}>
+                  {endpoint.method} - {endpoint.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       )}
 
       {/* Endpoint Details */}
       {selectedEndpoint && (
-        <div className="bg-gray-50 p-3 rounded-md space-y-2">
-          <div className="text-xs">
-            <span className="font-medium text-gray-700">Method:</span>
-            <span className="ml-2 text-gray-900">{selectedEndpoint.method}</span>
+        <div className="bg-gray-50 p-3 rounded-md space-y-3 border border-gray-200">
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span className="font-medium text-gray-700 block">Method</span>
+              <span className="text-gray-900 font-mono">{selectedEndpoint.method}</span>
+            </div>
+            <div>
+              <span className="font-medium text-gray-700 block">Path</span>
+              <span className="text-gray-900 font-mono break-all">{selectedEndpoint.path}</span>
+            </div>
           </div>
-          <div className="text-xs">
-            <span className="font-medium text-gray-700">Path:</span>
-            <span className="ml-2 text-gray-900">{selectedEndpoint.path}</span>
-          </div>
+
           {selectedEndpoint.description && (
             <div className="text-xs">
-              <span className="font-medium text-gray-700">Description:</span>
-              <p className="ml-2 text-gray-600">{selectedEndpoint.description}</p>
+              <span className="font-medium text-gray-700 block">Description</span>
+              <p className="text-gray-600">{selectedEndpoint.description}</p>
+            </div>
+          )}
+
+          {/* Headers */}
+          {selectedEndpoint.headers && selectedEndpoint.headers.length > 0 && (
+            <div className="text-xs">
+              <span className="font-medium text-gray-700 block mb-1">Headers</span>
+              <div className="bg-white border border-gray-200 rounded p-2 max-h-24 overflow-y-auto">
+                {selectedEndpoint.headers.map((header, idx) => (
+                  <div key={idx} className="flex justify-between py-1 border-b border-gray-100 last:border-0">
+                    <span className="text-gray-600 font-mono">{header.name}</span>
+                    <span className="text-gray-400 italic">{header.required ? 'Required' : 'Optional'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Query Params */}
+          {selectedEndpoint.queryParams && Object.keys(selectedEndpoint.queryParams).length > 0 && (
+            <div className="text-xs">
+              <span className="font-medium text-gray-700 block mb-1">Query Parameters</span>
+              <div className="bg-white border border-gray-200 rounded p-2 max-h-24 overflow-y-auto">
+                {Object.entries(selectedEndpoint.queryParams).map(([key, value], idx) => (
+                  <div key={idx} className="flex justify-between py-1 border-b border-gray-100 last:border-0">
+                    <span className="text-gray-600 font-mono">{key}</span>
+                    {/* Value might be a SecretReference or string, simplifying display */}
+                    <span className="text-gray-400 italic truncate max-w-[100px]">
+                      {typeof value === 'object' ? 'Secret' : value}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -115,9 +168,19 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
       {/* Request Body */}
       {selectedEndpoint && ['POST', 'PUT', 'PATCH'].includes(selectedEndpoint.method) && (
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Request Body (JSON)
-          </label>
+          <div className="flex justify-between items-center">
+            <label className="block text-sm font-medium text-gray-700">
+              Request Body (JSON)
+            </label>
+            {selectedEndpoint.requestBody?.example && (
+              <button
+                onClick={() => setRequestBody(JSON.stringify(selectedEndpoint.requestBody?.example, null, 2))}
+                className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+              >
+                Load Example
+              </button>
+            )}
+          </div>
           <textarea
             value={requestBody}
             onChange={(e) => handleRequestBodyChange(e.target.value)}
@@ -125,13 +188,10 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
             rows={8}
             placeholder='{\n  "key": "value"\n}'
           />
-          {selectedEndpoint.requestBody?.example && (
-            <button
-              onClick={() => setRequestBody(JSON.stringify(selectedEndpoint.requestBody?.example, null, 2))}
-              className="text-xs text-primary-600 hover:text-primary-700"
-            >
-              Use example
-            </button>
+          {selectedEndpoint.requestBody?.schema && (
+            <p className="text-xs text-gray-500 italic">
+              Schema validation available
+            </p>
           )}
         </div>
       )}
