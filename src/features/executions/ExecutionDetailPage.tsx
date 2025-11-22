@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -20,6 +20,7 @@ import { executionApi } from '../../services/api';
 import { webSocketService } from '../../services/websocket';
 import { useWorkflowStore } from '../../stores/workflow';
 import { useCancelExecution } from './hooks';
+import { transformExecutionToSnapshot } from '../../utils/execution-transformer';
 
 
 const statusConfig = {
@@ -59,6 +60,7 @@ const ExecutionDetailPage: React.FC = () => {
   const {
     executionSnapshot,
     setCurrentExecution,
+    setExecutionSnapshot,
     sidebarOpen,
     setSidebarOpen,
     selectedNodeId,
@@ -82,6 +84,12 @@ const ExecutionDetailPage: React.FC = () => {
       return query.state.data?.status === 'RUNNING' ? 5000 : false;
     },
   });
+
+  // Transform execution data to snapshot format for canvas visualization
+  const transformedSnapshot = useMemo(() => {
+    if (!execution) return null;
+    return transformExecutionToSnapshot(execution);
+  }, [execution]);
 
 
 
@@ -126,6 +134,13 @@ const ExecutionDetailPage: React.FC = () => {
       setCurrentExecution(execution);
     }
   }, [execution, setCurrentExecution]);
+
+  // Update store with transformed snapshot
+  useEffect(() => {
+    if (transformedSnapshot) {
+      setExecutionSnapshot(transformedSnapshot);
+    }
+  }, [transformedSnapshot, setExecutionSnapshot]);
 
 
 
