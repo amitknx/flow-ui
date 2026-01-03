@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { 
-  WorkflowDefinition, 
-  WorkflowExecution, 
+import type {
+  WorkflowDefinition,
+  WorkflowExecution,
   ExecutionSnapshot,
-  StepExecution 
+  StepExecution
 } from '../types/workflow';
 
 interface WorkflowStore {
@@ -25,7 +25,8 @@ interface WorkflowStore {
   // UI state
   selectedNodeId: string | null;
   sidebarOpen: boolean;
-  
+  workflowDirty: boolean;
+
   // Actions
   setWorkflows: (workflows: WorkflowDefinition[]) => void;
   setCurrentWorkflow: (workflow: WorkflowDefinition | null) => void;
@@ -47,6 +48,7 @@ interface WorkflowStore {
 
   setSelectedNodeId: (nodeId: string | null) => void;
   setSidebarOpen: (open: boolean) => void;
+  setWorkflowDirty: (dirty: boolean) => void;
 
   // Node update actions
   updateNodeData: (nodeId: string, data: Record<string, any>) => void;
@@ -75,37 +77,38 @@ export const useWorkflowStore = create<WorkflowStore>()(
 
       selectedNodeId: null,
       sidebarOpen: true,
+      workflowDirty: false,
 
       // Workflow actions
       setWorkflows: (workflows) => set({ workflows }),
-      
+
       setCurrentWorkflow: (workflow) => set({ currentWorkflow: workflow }),
-      
+
       addWorkflow: (workflow) => set((state) => ({
         workflows: [...state.workflows, workflow]
       })),
-      
+
       updateWorkflow: (workflow) => set((state) => ({
         workflows: state.workflows.map(w => w.id === workflow.id ? workflow : w),
         currentWorkflow: state.currentWorkflow?.id === workflow.id ? workflow : state.currentWorkflow
       })),
-      
+
       removeWorkflow: (id) => set((state) => ({
         workflows: state.workflows.filter(w => w.id !== id),
         currentWorkflow: state.currentWorkflow?.id === id ? null : state.currentWorkflow
       })),
-      
+
       setWorkflowLoading: (loading) => set({ isLoadingWorkflows: loading }),
-      
+
       setWorkflowError: (error) => set({ workflowError: error }),
 
       // Execution actions
       setExecutions: (executions) => set({ executions }),
-      
+
       setCurrentExecution: (execution) => set({ currentExecution: execution }),
-      
+
       setExecutionSnapshot: (snapshot) => set({ executionSnapshot: snapshot }),
-      
+
       updateExecutionSnapshot: (snapshot) => set((state) => {
         // Only update if it's the current execution
         if (state.executionSnapshot?.executionId === snapshot.executionId) {
@@ -113,19 +116,19 @@ export const useWorkflowStore = create<WorkflowStore>()(
         }
         return state;
       }),
-      
+
       setExecutionSteps: (steps) => set({ executionSteps: steps }),
-      
+
       addExecutionStep: (step) => set((state) => ({
         executionSteps: [...state.executionSteps, step]
       })),
-      
+
       updateExecutionStep: (step) => set((state) => ({
         executionSteps: state.executionSteps.map(s => s.id === step.id ? step : s)
       })),
-      
+
       setExecutionLoading: (loading) => set({ isLoadingExecution: loading }),
-      
+
       setExecutionError: (error) => set({ executionError: error }),
 
       // UI actions
@@ -133,7 +136,8 @@ export const useWorkflowStore = create<WorkflowStore>()(
 
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
-      // Node update actions
+      setWorkflowDirty: (dirty) => set({ workflowDirty: dirty }),
+
       updateNodeData: (nodeId, data) => set((state) => {
         if (!state.currentWorkflow) return state;
 
@@ -146,6 +150,7 @@ export const useWorkflowStore = create<WorkflowStore>()(
             ...state.currentWorkflow,
             nodes: updatedNodes,
           },
+          workflowDirty: true,
         };
       }),
 
@@ -161,6 +166,7 @@ export const useWorkflowStore = create<WorkflowStore>()(
             ...state.currentWorkflow,
             nodes: updatedNodes,
           },
+          workflowDirty: true,
         };
       }),
 
@@ -170,7 +176,7 @@ export const useWorkflowStore = create<WorkflowStore>()(
         workflowError: null,
         selectedNodeId: null,
       }),
-      
+
       resetExecution: () => set({
         currentExecution: null,
         executionSnapshot: null,

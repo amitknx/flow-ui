@@ -3,23 +3,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Controller } from 'react-hook-form';
 import type { Control } from 'react-hook-form';
-import { 
-  Eye, 
-  EyeOff, 
-  Key, 
-  ChevronDown, 
+import {
+  Eye,
+  EyeOff,
+  Key,
+  ChevronDown,
   Search,
   Check,
-  AlertTriangle 
+  AlertTriangle
 } from 'lucide-react';
 import clsx from 'clsx';
 
 import type { SecretStoreConfig, SecretReference } from '../../types/api';
-import { 
-  isSecretReference, 
-  createSecretReference, 
+import {
+  isSecretReference,
+  createSecretReference,
   formatSecretReference,
-  secretStoreTypeConfig 
+  secretStoreTypeConfig
 } from '../../utils/api-helpers';
 import { useSecretsList, useValidateSecretPath } from '../../hooks/useApiManagement';
 
@@ -123,7 +123,7 @@ export const SecretReferenceInput: React.FC<SecretReferenceInputProps> = ({
             <h4 className="text-sm font-medium text-gray-900">{store.name}</h4>
             <span className={clsx(
               'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
-              store.isActive 
+              store.isActive
                 ? 'bg-green-100 text-green-800'
                 : 'bg-gray-100 text-gray-800'
             )}>
@@ -149,13 +149,13 @@ export const SecretReferenceInput: React.FC<SecretReferenceInputProps> = ({
             placeholder="Search secret stores..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3"
           />
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-gray-400" />
           </div>
         </div>
-        
+
         <div className="mt-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md bg-white">
           {filteredStores.length > 0 ? (
             filteredStores.map(renderSecretStoreOption)
@@ -178,7 +178,7 @@ export const SecretReferenceInput: React.FC<SecretReferenceInputProps> = ({
             value={secretPath}
             onChange={(e) => handleSecretPathChange(e.target.value)}
             placeholder="secret/path/to/credential"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
           />
           <p className="text-xs text-gray-500 mt-1">
             Enter the path to your secret in {selectedStore.name}
@@ -197,7 +197,7 @@ export const SecretReferenceInput: React.FC<SecretReferenceInputProps> = ({
             value={secretKey}
             onChange={(e) => setSecretKey(e.target.value)}
             placeholder="password"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
           />
           <p className="text-xs text-gray-500 mt-1">
             Specify a key if the secret contains multiple values
@@ -232,7 +232,7 @@ export const SecretReferenceInput: React.FC<SecretReferenceInputProps> = ({
             )}
             Validate Path
           </button>
-          
+
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -275,7 +275,7 @@ export const SecretReferenceInput: React.FC<SecretReferenceInputProps> = ({
                   ref={inputRef}
                   type={sensitive && !showPassword ? 'password' : 'text'}
                   className={clsx(
-                    'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm',
+                    'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2',
                     sensitive && 'pr-20',
                     !sensitive && secretStores.length > 0 && 'pr-10',
                     errors?.[name] && 'border-red-300 focus:border-red-500 focus:ring-red-500'
@@ -284,7 +284,7 @@ export const SecretReferenceInput: React.FC<SecretReferenceInputProps> = ({
                   value={isSecretReference(field.value) ? formatSecretReference(field.value) : field.value || ''}
                   onChange={(e) => handleTextModeChange(e.target.value, field.onChange)}
                 />
-                
+
                 {/* Password visibility toggle */}
                 {sensitive && (
                   <button
@@ -299,7 +299,7 @@ export const SecretReferenceInput: React.FC<SecretReferenceInputProps> = ({
                     )}
                   </button>
                 )}
-                
+
                 {/* Secret store selector button */}
                 {secretStores.length > 0 && (
                   <button
@@ -344,7 +344,7 @@ export const SecretReferenceInput: React.FC<SecretReferenceInputProps> = ({
                     Select a secret store to reference instead of entering plain text
                   </p>
                 </div>
-                
+
                 <div className="p-2">
                   <input
                     type="text"
@@ -392,14 +392,14 @@ export const SecretReferenceInput: React.FC<SecretReferenceInputProps> = ({
           </>
         )}
       />
-      
+
       {/* Error message */}
       {errors?.[name] && (
         <p className="mt-1 text-sm text-red-600">
           {errors[name]?.message as string}
         </p>
       )}
-      
+
       {/* Secret reference display */}
       <Controller
         name={name}

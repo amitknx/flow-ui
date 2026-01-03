@@ -28,6 +28,14 @@ const SubWorkflowConfig: React.FC<SubWorkflowConfigProps> = ({ nodeId, data }) =
   // Filter out current workflow to prevent circular references
   const availableWorkflows = workflows?.filter(wf => wf.id !== currentWorkflow?.id) || [];
 
+  // Reset local state when nodeId changes (switching between different nodes)
+  useEffect(() => {
+    setSelectedWorkflowId(data?.workflowId || '');
+    setExecutionMode(data?.executionMode || 'SYNC');
+    setInputMapping(data?.inputMapping ? JSON.stringify(data.inputMapping, null, 2) : '');
+  }, [nodeId]); // Only reset when nodeId changes
+
+  // Update store when local state changes
   useEffect(() => {
     if (selectedWorkflowId) {
       const mapping = inputMapping ? JSON.parse(inputMapping) : undefined;

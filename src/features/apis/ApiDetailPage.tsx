@@ -155,6 +155,8 @@ export const ApiDetailPage: React.FC = () => {
         requestTimestamp: response.requestTimestamp,
         responseTimestamp: response.responseTimestamp,
         responseHeaders: response.responseHeaders,
+        requestHeaders: response.requestHeaders,
+        requestBody: response.requestBody,
       });
 
       // Close modal after test execution
@@ -362,17 +364,16 @@ export const ApiDetailPage: React.FC = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <span
-                              className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold ${
-                                endpoint.httpMethod === 'GET'
+                              className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold ${endpoint.httpMethod === 'GET'
                                   ? 'bg-blue-100 text-blue-800'
                                   : endpoint.httpMethod === 'POST'
-                                  ? 'bg-green-100 text-green-800'
-                                  : endpoint.httpMethod === 'PUT'
-                                  ? 'bg-orange-100 text-orange-800'
-                                  : endpoint.httpMethod === 'DELETE'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-gray-100 text-gray-800'
-                              }`}
+                                    ? 'bg-green-100 text-green-800'
+                                    : endpoint.httpMethod === 'PUT'
+                                      ? 'bg-orange-100 text-orange-800'
+                                      : endpoint.httpMethod === 'DELETE'
+                                        ? 'bg-red-100 text-red-800'
+                                        : 'bg-gray-100 text-gray-800'
+                                }`}
                             >
                               {endpoint.httpMethod}
                             </span>
@@ -456,19 +457,44 @@ export const ApiDetailPage: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Request Headers */}
+                  {testResult.requestHeaders && Object.keys(testResult.requestHeaders).length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">Request Headers</h3>
+                      <div className="text-xs bg-gray-50 p-3 rounded-md border border-gray-200 max-h-48 overflow-auto">
+                        {Object.entries(testResult.requestHeaders).map(([key, value]) => (
+                          <div key={key} className="mb-1">
+                            <span className="font-medium text-gray-700">{key}:</span>{' '}
+                            <span className="text-gray-600">{String(value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Request Body */}
+                  {testResult.requestBody && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">Request Body</h3>
+                      <pre className="text-xs bg-gray-50 p-3 rounded-md overflow-auto max-h-96 border border-gray-200">
+                        {typeof testResult.requestBody === 'string'
+                          ? testResult.requestBody
+                          : JSON.stringify(testResult.requestBody, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+
                   {/* Status */}
                   <div
-                    className={`p-3 rounded-md border ${
-                      testResult.success
+                    className={`p-3 rounded-md border ${testResult.success
                         ? 'bg-green-50 border-green-200'
                         : 'bg-red-50 border-red-200'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <span
-                        className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold ${
-                          testResult.success ? 'bg-green-200 text-green-900' : 'bg-red-200 text-red-900'
-                        }`}
+                        className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold ${testResult.success ? 'bg-green-200 text-green-900' : 'bg-red-200 text-red-900'
+                          }`}
                       >
                         {testResult.success ? 'SUCCESS' : 'ERROR'}
                       </span>

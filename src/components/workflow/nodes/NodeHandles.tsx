@@ -15,37 +15,37 @@ const NodeHandles: React.FC<NodeHandlesProps> = ({ type, compact = false }) => {
     <>
       {/* Input Handle */}
       {type !== 'START' && (
-        <Handle 
-          type="target" 
-          position={Position.Left} 
+        <Handle
+          type="target"
+          position={Position.Left}
           className={handleClass}
         />
       )}
-      
+
       {/* Output Handles */}
       {type === 'CONDITIONAL' ? (
         // Conditional nodes have two output handles
         <>
-          <Handle 
-            type="source" 
-            position={Position.Right} 
-            id="true"
+          <Handle
+            type="source"
+            position={Position.Right}
+            id="true-branch"
             className={`!bg-green-500 !border-white ${handleSize} !top-[30%]`}
             style={{ top: '30%' }}
           />
-          <Handle 
-            type="source" 
-            position={Position.Right} 
-            id="false"
+          <Handle
+            type="source"
+            position={Position.Right}
+            id="false-branch"
             className={`!bg-red-500 !border-white ${handleSize} !top-[70%]`}
             style={{ top: '70%' }}
           />
         </>
       ) : type !== 'END' ? (
         // Regular nodes have one output handle
-        <Handle 
-          type="source" 
-          position={Position.Right} 
+        <Handle
+          type="source"
+          position={Position.Right}
           className={handleClass}
         />
       ) : null}

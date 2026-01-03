@@ -13,6 +13,13 @@ const DelayConfig: React.FC<DelayConfigProps> = ({ nodeId, data }) => {
   const [duration, setDuration] = useState<string>(data?.duration?.toString() || '');
   const [unit, setUnit] = useState<TimeUnit>(data?.unit || 's');
 
+  // Reset local state when nodeId changes (switching between different nodes)
+  useEffect(() => {
+    setDuration(data?.duration?.toString() || '');
+    setUnit(data?.unit || 's');
+  }, [nodeId]); // Only reset when nodeId changes
+
+  // Update store when local state changes
   useEffect(() => {
     if (duration) {
       const durationValue = parseInt(duration, 10);

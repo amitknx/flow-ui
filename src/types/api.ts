@@ -11,21 +11,21 @@ export type AuthenticationType =
   | 'OAUTH2'
   | 'CUSTOM';
 
-export type HttpMethod = 
-  | 'GET' 
-  | 'POST' 
-  | 'PUT' 
-  | 'PATCH' 
-  | 'DELETE' 
-  | 'HEAD' 
+export type HttpMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'PATCH'
+  | 'DELETE'
+  | 'HEAD'
   | 'OPTIONS';
 
-export type SecretStoreType = 
-  | 'hashicorp_vault' 
-  | 'aws_secrets_manager' 
-  | 'azure_key_vault' 
-  | 'gcp_secret_manager' 
-  | 'kubernetes_secrets' 
+export type SecretStoreType =
+  | 'hashicorp_vault'
+  | 'aws_secrets_manager'
+  | 'azure_key_vault'
+  | 'gcp_secret_manager'
+  | 'kubernetes_secrets'
   | 'environment_variables';
 
 /**
@@ -111,11 +111,11 @@ export interface EnvironmentVariablesConfig extends BaseSecretStoreConfig {
 /**
  * Union type for all secret store configurations
  */
-export type SecretStoreConfig = 
-  | VaultSecretStoreConfig 
-  | AwsSecretsManagerConfig 
-  | AzureKeyVaultConfig 
-  | GcpSecretManagerConfig 
+export type SecretStoreConfig =
+  | VaultSecretStoreConfig
+  | AwsSecretsManagerConfig
+  | AzureKeyVaultConfig
+  | GcpSecretManagerConfig
   | EnvironmentVariablesConfig;
 
 /**
@@ -173,18 +173,28 @@ export interface CustomAuthConfig {
 /**
  * Union type for all authentication configurations
  */
-export type AuthenticationConfig = 
-  | NoAuthConfig 
-  | BasicAuthConfig 
-  | BearerAuthConfig 
-  | ApiKeyAuthConfig 
-  | OAuth2Config 
+export type AuthenticationConfig =
+  | NoAuthConfig
+  | BasicAuthConfig
+  | BearerAuthConfig
+  | ApiKeyAuthConfig
+  | OAuth2Config
   | CustomAuthConfig;
 
 /**
  * HTTP header configuration
  */
 export interface HttpHeader {
+  name: string;
+  value: string | SecretReference;
+  required: boolean;
+  description?: string;
+}
+
+/**
+ * API endpoint configuration
+ */
+export interface HttpParam {
   name: string;
   value: string | SecretReference;
   required: boolean;
@@ -201,7 +211,7 @@ export interface ApiEndpoint {
   method: HttpMethod;
   path: string;
   headers: HttpHeader[];
-  queryParams: Record<string, string | SecretReference>;
+  queryParams: HttpParam[];
   requestBody?: {
     contentType: string;
     schema?: any; // JSON Schema for validation

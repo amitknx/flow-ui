@@ -24,6 +24,13 @@ export const TestEndpointModal: React.FC<TestEndpointModalProps> = ({
   const [useCustomAuth, setUseCustomAuth] = useState(false);
   const [authType, setAuthType] = useState<string>('BEARER');
   const [authToken, setAuthToken] = useState('');
+  const [newParamName, setNewParamName] = useState('');
+
+  const [headers, setHeaders] = useState<Record<string, string>>({});
+  const [newHeaderName, setNewHeaderName] = useState('');
+  const [requestBody, setRequestBody] = useState<string>(
+    endpoint.requestBody?.example ? JSON.stringify(endpoint.requestBody.example, null, 2) : ''
+  );
 
   // Parse path parameters from endpoint path
   const pathParamKeys = React.useMemo(() => {
@@ -33,8 +40,25 @@ export const TestEndpointModal: React.FC<TestEndpointModalProps> = ({
 
   // Parse query parameters from endpoint config
   const queryParamKeys = React.useMemo(() => {
-    return endpoint.queryParams ? Object.keys(endpoint.queryParams) : [];
+    return endpoint.queryParams ? (Array.isArray(endpoint.queryParams) ? endpoint.queryParams.map(p => p.name) : Object.keys(endpoint.queryParams)) : [];
   }, [endpoint.queryParams]);
+
+  // Initialize headers from endpoint config
+  React.useEffect(() => {
+    if (endpoint.headers) {
+      const initialHeaders: Record<string, string> = {};
+      if (Array.isArray(endpoint.headers)) {
+        endpoint.headers.forEach(h => {
+          initialHeaders[h.name] = typeof h.value === 'string' ? h.value : '';
+        });
+      } else {
+        Object.entries(endpoint.headers).forEach(([k, v]) => {
+          initialHeaders[k] = typeof v === 'string' ? v : '';
+        });
+      }
+      setHeaders(initialHeaders);
+    }
+  }, [endpoint.headers]);
 
   const handleTest = async () => {
     const params: any = {};
@@ -45,6 +69,19 @@ export const TestEndpointModal: React.FC<TestEndpointModalProps> = ({
 
     if (queryParamKeys.length > 0 || Object.keys(queryParams).length > 0) {
       params.queryParams = queryParams;
+    }
+
+    if (Object.keys(headers).length > 0) {
+      params.headers = headers;
+    }
+
+    if (['POST', 'PUT', 'PATCH'].includes(endpoint.httpMethod) && requestBody) {
+      try {
+        params.requestBody = JSON.parse(requestBody);
+      } catch (e) {
+        console.error('Invalid JSON body');
+        // You might want to show an error to the user here
+      }
     }
 
     if (useCustomAuth && authToken) {
@@ -65,15 +102,29 @@ export const TestEndpointModal: React.FC<TestEndpointModalProps> = ({
     setQueryParams(prev => ({ ...prev, [key]: value }));
   };
 
+  const updateHeader = (key: string, value: string) => {
+    setHeaders(prev => ({ ...prev, [key]: value }));
+  };
+
+
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Test Endpoint</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {endpoint.httpMethod} {endpoint.endpointPath}
+            <p className="text-sm text-gray-600 mt-1 font-mono">
+              <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold mr-2 ${endpoint.httpMethod === 'GET' ? 'bg-blue-100 text-blue-800' :
+                endpoint.httpMethod === 'POST' ? 'bg-green-100 text-green-800' :
+                  endpoint.httpMethod === 'PUT' ? 'bg-orange-100 text-orange-800' :
+                    endpoint.httpMethod === 'DELETE' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                }`}>
+                {endpoint.httpMethod}
+              </span>
+              {endpoint.endpointPath}
             </p>
           </div>
           <button
@@ -86,23 +137,23 @@ export const TestEndpointModal: React.FC<TestEndpointModalProps> = ({
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-8">
           {/* Path Parameters */}
           {pathParamKeys.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Path Parameters</h3>
-              <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Path Parameters</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {pathParamKeys.map(key => (
                   <div key={key}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {key}
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      {key} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={pathParams[key] || ''}
                       onChange={(e) => updatePathParam(key, e.target.value)}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                      placeholder={`Enter ${key}`}
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
+                      placeholder={`Value for {${key}}`}
                       disabled={testing}
                     />
                   </div>
@@ -112,85 +163,192 @@ export const TestEndpointModal: React.FC<TestEndpointModalProps> = ({
           )}
 
           {/* Query Parameters */}
-          {queryParamKeys.length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Query Parameters</h3>
-              <div className="space-y-3">
-                {queryParamKeys.map(key => (
-                  <div key={key}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {key}
-                    </label>
-                    <input
-                      type="text"
-                      value={queryParams[key] || ''}
-                      onChange={(e) => updateQueryParam(key, e.target.value)}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                      placeholder={`Enter ${key}`}
-                      disabled={testing}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Additional Query Parameters */}
           <div>
-            <h3 className="text-sm font-medium text-gray-900 mb-3">
-              Additional Query Parameters (Optional)
-            </h3>
-            <div className="text-xs text-gray-500 mb-2">
-              You can add custom query parameters that will be sent with the request
-            </div>
-            {Object.entries(queryParams)
-              .filter(([key]) => !queryParamKeys.includes(key))
-              .map(([key, value]) => (
-                <div key={key} className="grid grid-cols-2 gap-3 mb-2">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Query Parameters</h3>
+            <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+              {/* Defined Params */}
+              {queryParamKeys.map(key => (
+                <div key={key} className="grid grid-cols-3 gap-3 items-center">
+                  <label className="block text-sm font-medium text-gray-700 col-span-1 truncate" title={key}>
+                    {key}
+                  </label>
                   <input
                     type="text"
-                    value={key}
-                    disabled
-                    className="block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm sm:text-sm"
+                    value={queryParams[key] || ''}
+                    onChange={(e) => updateQueryParam(key, e.target.value)}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 col-span-2"
+                    placeholder="Value"
+                    disabled={testing}
                   />
-                  <div className="flex gap-2">
+                </div>
+              ))}
+
+              {/* Custom Params */}
+              {Object.entries(queryParams)
+                .filter(([key]) => !queryParamKeys.includes(key))
+                .map(([key, value]) => (
+                  <div key={key} className="grid grid-cols-3 gap-3 items-center">
+                    <div className="col-span-1 flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          const newParams = { ...queryParams };
+                          delete newParams[key];
+                          setQueryParams(newParams);
+                        }}
+                        className="text-gray-400 hover:text-red-600"
+                        disabled={testing}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                      <span className="text-sm font-medium text-gray-700 truncate" title={key}>{key}</span>
+                    </div>
                     <input
                       type="text"
                       value={value}
                       onChange={(e) => updateQueryParam(key, e.target.value)}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 col-span-2"
                       disabled={testing}
                     />
+                  </div>
+                ))}
+
+              {/* Add New Param */}
+              <div className="flex gap-2 pt-2 border-t border-gray-200 mt-2">
+                <input
+                  type="text"
+                  value={newParamName}
+                  onChange={(e) => setNewParamName(e.target.value)}
+                  className="block w-1/3 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-xs px-2 py-1.5"
+                  placeholder="New param name"
+                  disabled={testing}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (newParamName.trim() && !queryParams[newParamName.trim()]) {
+                        setQueryParams(prev => ({ ...prev, [newParamName.trim()]: '' }));
+                        setNewParamName('');
+                      }
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    if (newParamName.trim() && !queryParams[newParamName.trim()]) {
+                      setQueryParams(prev => ({ ...prev, [newParamName.trim()]: '' }));
+                      setNewParamName('');
+                    }
+                  }}
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  disabled={testing || !newParamName.trim()}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Headers */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Headers</h3>
+            <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+              {Object.entries(headers).map(([key, value]) => (
+                <div key={key} className="grid grid-cols-3 gap-3 items-center">
+                  <div className="col-span-1 flex items-center gap-2">
                     <button
                       onClick={() => {
-                        const newParams = { ...queryParams };
-                        delete newParams[key];
-                        setQueryParams(newParams);
+                        const newHeaders = { ...headers };
+                        delete newHeaders[key];
+                        setHeaders(newHeaders);
                       }}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-gray-400 hover:text-red-600"
                       disabled={testing}
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3 h-3" />
                     </button>
+                    <span className="text-sm font-medium text-gray-700 truncate" title={key}>{key}</span>
                   </div>
+                  <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => updateHeader(key, e.target.value)}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 col-span-2"
+                    placeholder="Value"
+                    disabled={testing}
+                  />
                 </div>
               ))}
-            <button
-              onClick={() => {
-                const key = prompt('Enter parameter name:');
-                if (key && key.trim() && !queryParams[key]) {
-                  setQueryParams(prev => ({ ...prev, [key.trim()]: '' }));
-                }
-              }}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-              disabled={testing}
-            >
-              + Add parameter
-            </button>
+
+              {/* Add New Header */}
+              <div className="flex gap-2 pt-2 border-t border-gray-200 mt-2">
+                <input
+                  type="text"
+                  value={newHeaderName}
+                  onChange={(e) => setNewHeaderName(e.target.value)}
+                  className="block w-1/3 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-xs px-2 py-1.5"
+                  placeholder="New header name"
+                  disabled={testing}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (newHeaderName.trim() && !headers[newHeaderName.trim()]) {
+                        setHeaders(prev => ({ ...prev, [newHeaderName.trim()]: '' }));
+                        setNewHeaderName('');
+                      }
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    if (newHeaderName.trim() && !headers[newHeaderName.trim()]) {
+                      setHeaders(prev => ({ ...prev, [newHeaderName.trim()]: '' }));
+                      setNewHeaderName('');
+                    }
+                  }}
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  disabled={testing || !newHeaderName.trim()}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
           </div>
+
+          {/* Request Body */}
+          {['POST', 'PUT', 'PATCH'].includes(endpoint.httpMethod) && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Request Body</h3>
+              <div className="relative">
+                <textarea
+                  value={requestBody}
+                  onChange={(e) => setRequestBody(e.target.value)}
+                  rows={8}
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-sm px-3 py-2"
+                  placeholder='{\n  "key": "value"\n}'
+                  disabled={testing}
+                />
+                <div className="absolute top-2 right-2">
+                  <button
+                    onClick={() => {
+                      try {
+                        const formatted = JSON.stringify(JSON.parse(requestBody), null, 2);
+                        setRequestBody(formatted);
+                      } catch (e) {
+                        // Ignore error
+                      }
+                    }}
+                    className="text-xs text-gray-500 hover:text-blue-600 bg-white bg-opacity-80 px-2 py-1 rounded border border-gray-200"
+                    title="Format JSON"
+                  >
+                    Format
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Custom Authentication */}
           <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Authentication</h3>
             <div className="flex items-center gap-2 mb-3">
               <input
                 type="checkbox"
@@ -206,7 +364,7 @@ export const TestEndpointModal: React.FC<TestEndpointModalProps> = ({
             </div>
 
             {useCustomAuth && (
-              <div className="space-y-3 pl-6">
+              <div className="space-y-3 pl-6 border-l-2 border-gray-200 ml-1">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Authentication Type
@@ -214,7 +372,7 @@ export const TestEndpointModal: React.FC<TestEndpointModalProps> = ({
                   <select
                     value={authType}
                     onChange={(e) => setAuthType(e.target.value)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                     disabled={testing}
                   >
                     <option value="BEARER">Bearer Token</option>
@@ -230,7 +388,7 @@ export const TestEndpointModal: React.FC<TestEndpointModalProps> = ({
                     type="text"
                     value={authToken}
                     onChange={(e) => setAuthToken(e.target.value)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                     placeholder="Enter token or credentials"
                     disabled={testing}
                   />
@@ -238,27 +396,13 @@ export const TestEndpointModal: React.FC<TestEndpointModalProps> = ({
               </div>
             )}
           </div>
-
-          {/* Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <div className="flex gap-2">
-              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-blue-800">
-                <p className="font-medium">Testing endpoint</p>
-                <p className="mt-1">
-                  This will execute the endpoint using the configured API settings.
-                  {useCustomAuth && ' Authentication will be overridden with the values provided above.'}
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 shadow-sm"
             disabled={testing}
           >
             Cancel
@@ -266,7 +410,7 @@ export const TestEndpointModal: React.FC<TestEndpointModalProps> = ({
           <button
             onClick={handleTest}
             disabled={testing}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
             {testing ? (
               <>

@@ -10,6 +10,12 @@ const ConditionalConfig: React.FC<ConditionalConfigProps> = ({ nodeId, data }) =
   const { updateNodeData } = useWorkflowStore();
   const [condition, setCondition] = useState<string>(data?.condition || '');
 
+  // Reset local state when nodeId changes (switching between different nodes)
+  useEffect(() => {
+    setCondition(data?.condition || '');
+  }, [nodeId]); // Only reset when nodeId changes
+
+  // Update store when local state changes
   useEffect(() => {
     if (condition) {
       updateNodeData(nodeId, { condition });

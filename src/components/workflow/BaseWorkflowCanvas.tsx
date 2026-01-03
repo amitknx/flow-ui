@@ -99,7 +99,9 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      sourceHandle: edge.sourceHandle,
+      sourceHandle: edge.sourceHandle === 'true' ? 'true-branch' :
+        edge.sourceHandle === 'false' ? 'false-branch' :
+          edge.sourceHandle,
       targetHandle: edge.targetHandle,
       type: 'default',
       animated: mode === 'execution' ? (edge as any).traversed : false,
@@ -230,7 +232,9 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
             id: newEdge.id,
             source: params.source!,
             target: params.target!,
-            sourceHandle: params.sourceHandle || undefined,
+            sourceHandle: params.sourceHandle === 'true-branch' ? 'true' :
+              params.sourceHandle === 'false-branch' ? 'false' :
+                params.sourceHandle || undefined,
             targetHandle: params.targetHandle || undefined,
           };
           onWorkflowChange(workflow.nodes, [...workflow.edges, workflowEdge]);
@@ -282,13 +286,13 @@ const BaseWorkflowCanvas: React.FC<BaseWorkflowCanvasProps> = ({
         edgesReconnectable={mode === 'authoring'}
       >
         <Background color="#e2e8f0" gap={16} />
-        
+
         {showControls && (
           <Controls className="bg-white shadow-lg rounded-lg" />
         )}
-        
+
         {showMiniMap && (
-          <MiniMap 
+          <MiniMap
             className="bg-white shadow-lg rounded-lg"
             nodeColor={(node) => {
               const nodeData = node.data;

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  ArrowLeft, 
-  Play, 
-  Save, 
-  Copy, 
+import {
+  ArrowLeft,
+  Play,
+  Save,
+  Copy,
   Settings,
   Eye,
   EyeOff
@@ -20,8 +20,8 @@ const WorkflowDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
-  
-  const { 
+
+  const {
     currentWorkflow,
     setCurrentWorkflow,
     sidebarOpen,
@@ -30,10 +30,10 @@ const WorkflowDetailPage: React.FC = () => {
     resetWorkflow
   } = useWorkflowStore();
 
-  const { 
-    data: workflow, 
-    isLoading, 
-    error 
+  const {
+    data: workflow,
+    isLoading,
+    error
   } = useQuery({
     queryKey: ['workflow', id],
     queryFn: () => id ? workflowApi.getWorkflow(id) : null,
@@ -44,7 +44,7 @@ const WorkflowDetailPage: React.FC = () => {
     if (workflow) {
       setCurrentWorkflow(workflow);
     }
-    
+
     return () => {
       resetWorkflow();
     };
@@ -66,7 +66,7 @@ const WorkflowDetailPage: React.FC = () => {
 
   const handleSave = async () => {
     if (!currentWorkflow) return;
-    
+
     try {
       // Implementation for saving workflow changes
       console.log('Saving workflow:', currentWorkflow);
@@ -78,7 +78,7 @@ const WorkflowDetailPage: React.FC = () => {
 
   const handleClone = async () => {
     if (!currentWorkflow) return;
-    
+
     try {
       const clonedWorkflow = await workflowApi.cloneWorkflow(currentWorkflow.id);
       navigate(`/workflows/${clonedWorkflow.id}/edit`);
@@ -146,7 +146,7 @@ const WorkflowDetailPage: React.FC = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            
+
             <div>
               <h1 className="text-xl font-semibold text-gray-900">
                 {currentWorkflow?.name || 'Untitled Workflow'}
@@ -186,7 +186,7 @@ const WorkflowDetailPage: React.FC = () => {
               </button>
             ) : (
               <button
-                onClick={() => setIsEditing(true)}
+                onClick={() => navigate(`/workflows/${id}/edit`)}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
               >
                 <Settings className="w-4 h-4 mr-2" />

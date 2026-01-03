@@ -3,15 +3,15 @@
 import React, { useState } from 'react';
 import { Controller } from 'react-hook-form';
 import type { Control, UseFieldArrayReturn } from 'react-hook-form';
-import { 
-  Plus, 
-  Trash2, 
-  ChevronDown, 
-  ChevronRight, 
-  Code, 
-  Clock, 
+import {
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  Code,
+  Clock,
   RotateCcw,
-  FileText 
+  FileText
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -58,7 +58,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
       method: 'GET' as HttpMethod,
       path: '/',
       headers: [],
-      queryParams: {},
+      queryParams: [],
       timeout: 30000,
       retryConfig: {
         maxRetries: 3,
@@ -84,7 +84,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
 
   const renderEndpointHeader = (field: any, index: number) => {
     const isExpanded = expandedEndpoints.has(index);
-    
+
     return (
       <div
         className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
@@ -96,13 +96,13 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
           ) : (
             <ChevronRight className="w-4 h-4 text-gray-400" />
           )}
-          
+
           <Controller
             name={`endpoints.${index}.method`}
             control={control}
             render={({ field: methodField }) => renderMethodBadge(methodField.value)}
           />
-          
+
           <div>
             <Controller
               name={`endpoints.${index}.name`}
@@ -124,7 +124,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
             />
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -157,13 +157,13 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
               <input
                 {...nameField}
                 type="text"
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                 placeholder="Get User Profile"
               />
             )}
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             HTTP Method *
@@ -174,7 +174,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
             render={({ field: methodField }) => (
               <select
                 {...methodField}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
               >
                 {Object.entries(httpMethodConfig).map(([method, config]) => (
                   <option key={method} value={method}>
@@ -198,7 +198,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
             <input
               {...pathField}
               type="text"
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm font-mono"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm font-mono px-3 py-2"
               placeholder="/api/v1/users/{id}"
             />
           )}
@@ -219,7 +219,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
             <textarea
               {...descField}
               rows={2}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
               placeholder="Describe what this endpoint does..."
             />
           )}
@@ -255,7 +255,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
             )}
           />
         </div>
-        
+
         <Controller
           name={`endpoints.${index}.headers`}
           control={control}
@@ -272,7 +272,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
                         newHeaders[headerIndex] = { ...header, name: e.target.value };
                         headersField.onChange(newHeaders);
                       }}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                       placeholder="Header name"
                     />
                   </div>
@@ -285,7 +285,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
                         newHeaders[headerIndex] = { ...header, value: e.target.value };
                         headersField.onChange(newHeaders);
                       }}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                       placeholder="Header value"
                     />
                   </div>
@@ -298,7 +298,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
                         newHeaders[headerIndex] = { ...header, description: e.target.value };
                         headersField.onChange(newHeaders);
                       }}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                       placeholder="Description"
                     />
                   </div>
@@ -336,36 +336,119 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
 
       {/* Query Parameters */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Query Parameters
-        </label>
+        <div className="flex items-center justify-between mb-3">
+          <label className="block text-sm font-medium text-gray-700">
+            Query Parameters
+          </label>
+          <Controller
+            name={`endpoints.${index}.queryParams`}
+            control={control}
+            render={({ field: queryField }) => (
+              <button
+                type="button"
+                onClick={() => {
+                  const currentParams = Array.isArray(queryField.value) ? queryField.value : [];
+                  const newParams = [...currentParams, {
+                    name: '',
+                    value: '',
+                    required: false,
+                    description: '',
+                  }];
+                  queryField.onChange(newParams);
+                }}
+                className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+                Add Parameter
+              </button>
+            )}
+          />
+        </div>
+
         <Controller
           name={`endpoints.${index}.queryParams`}
           control={control}
-          render={({ field: queryField }) => (
-            <textarea
-              {...queryField}
-              rows={3}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm font-mono"
-              placeholder={`{
-  "page": "1",
-  "limit": "10",
-  "filter": "active"
-}`}
-              value={typeof queryField.value === 'object' ? JSON.stringify(queryField.value, null, 2) : queryField.value}
-              onChange={(e) => {
-                try {
-                  queryField.onChange(JSON.parse(e.target.value));
-                } catch {
-                  queryField.onChange(e.target.value);
-                }
-              }}
-            />
-          )}
+          render={({ field: queryField }) => {
+            const params = Array.isArray(queryField.value) ? queryField.value : [];
+            return (
+              <div className="space-y-2">
+                {params.map((param: any, paramIndex: number) => (
+                  <div key={paramIndex} className="grid grid-cols-12 gap-2 items-center">
+                    <div className="col-span-3">
+                      <input
+                        type="text"
+                        value={param.name}
+                        onChange={(e) => {
+                          const newParams = [...queryField.value];
+                          newParams[paramIndex] = { ...param, name: e.target.value };
+                          queryField.onChange(newParams);
+                        }}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
+                        placeholder="Param name"
+                      />
+                    </div>
+                    <div className="col-span-4">
+                      <input
+                        type="text"
+                        value={typeof param.value === 'string' ? param.value : ''}
+                        onChange={(e) => {
+                          const newParams = [...queryField.value];
+                          newParams[paramIndex] = { ...param, value: e.target.value };
+                          queryField.onChange(newParams);
+                        }}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
+                        placeholder="Default value"
+                      />
+                    </div>
+                    <div className="col-span-3">
+                      <input
+                        type="text"
+                        value={param.description || ''}
+                        onChange={(e) => {
+                          const newParams = [...queryField.value];
+                          newParams[paramIndex] = { ...param, description: e.target.value };
+                          queryField.onChange(newParams);
+                        }}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
+                        placeholder="Description"
+                      />
+                    </div>
+                    <div className="col-span-1 flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        checked={param.required || false}
+                        onChange={(e) => {
+                          const newParams = [...queryField.value];
+                          newParams[paramIndex] = { ...param, required: e.target.checked };
+                          queryField.onChange(newParams);
+                        }}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        title="Required"
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newParams = queryField.value.filter((_: any, i: number) => i !== paramIndex);
+                          queryField.onChange(newParams);
+                        }}
+                        className="p-1 text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {(queryField.value || []).length === 0 && (
+                  <p className="text-xs text-gray-500 italic text-center py-2">
+                    No query parameters defined
+                  </p>
+                )}
+              </div>
+            );
+          }}
         />
-        <p className="text-xs text-gray-500 mt-1">
-          Enter query parameters as JSON object
-        </p>
       </div>
 
       {/* Request Body (for methods that support it) */}
@@ -393,7 +476,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
                     render={({ field: contentTypeField }) => (
                       <select
                         {...contentTypeField}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                       >
                         <option value="application/json">application/json</option>
                         <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
@@ -415,7 +498,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
                       <textarea
                         {...exampleField}
                         rows={4}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm font-mono"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm font-mono px-3 py-2"
                         placeholder={`{
   "name": "John Doe",
   "email": "john@example.com"
@@ -444,7 +527,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
           <Clock className="w-4 h-4" />
           Advanced Settings
         </h4>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-gray-600 mb-1">
@@ -459,7 +542,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
                   type="number"
                   min="1000"
                   step="1000"
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                   placeholder="30000"
                 />
               )}
@@ -487,7 +570,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
                     type="number"
                     min="0"
                     max="10"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                     placeholder="3"
                   />
                 )}
@@ -503,7 +586,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
                 render={({ field: strategyField }) => (
                   <select
                     {...strategyField}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                   >
                     <option value="linear">Linear</option>
                     <option value="exponential">Exponential</option>
@@ -524,7 +607,7 @@ export const EndpointConfigForm: React.FC<EndpointConfigFormProps> = ({
                     type="number"
                     min="100"
                     step="100"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                     placeholder="1000"
                   />
                 )}

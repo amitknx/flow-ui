@@ -175,7 +175,7 @@ export const AuthenticationConfigForm: React.FC<AuthenticationConfigFormProps> =
               <input
                 {...field}
                 type="text"
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                 placeholder="X-API-Key"
               />
             )}
@@ -192,7 +192,7 @@ export const AuthenticationConfigForm: React.FC<AuthenticationConfigFormProps> =
           render={({ field }) => (
             <select
               {...field}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
             >
               <option value="">Select location</option>
               <option value="header">Header</option>
@@ -221,7 +221,7 @@ export const AuthenticationConfigForm: React.FC<AuthenticationConfigFormProps> =
           render={({ field }) => (
             <select
               {...field}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
             >
               <option value="">Select grant type</option>
               <option value="client_credentials">Client Credentials</option>
@@ -269,7 +269,7 @@ export const AuthenticationConfigForm: React.FC<AuthenticationConfigFormProps> =
             <input
               {...field}
               type="url"
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
               placeholder="https://auth.example.com/oauth/token"
             />
           )}
@@ -286,7 +286,7 @@ export const AuthenticationConfigForm: React.FC<AuthenticationConfigFormProps> =
             <input
               {...field}
               type="text"
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
               placeholder="read write admin (space-separated)"
               onChange={(e) => field.onChange(e.target.value.split(' ').filter(Boolean))}
               value={Array.isArray(field.value) ? field.value.join(' ') : ''}
@@ -315,7 +315,7 @@ export const AuthenticationConfigForm: React.FC<AuthenticationConfigFormProps> =
               <textarea
                 {...field}
                 rows={4}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                 placeholder={`{
   "Authorization": "Custom token123",
   "X-Custom-Header": "value"
@@ -333,7 +333,7 @@ export const AuthenticationConfigForm: React.FC<AuthenticationConfigFormProps> =
           />
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          Enter custom headers as JSON object. You can reference secret stores using the format: 
+          Enter custom headers as JSON object. You can reference secret stores using the format:
           {"{"}"secretStoreId": "store-id", "secretPath": "path/to/secret"{"}"}
         </p>
       </div>
@@ -343,7 +343,7 @@ export const AuthenticationConfigForm: React.FC<AuthenticationConfigFormProps> =
   return (
     <div className="space-y-6">
       {renderAuthTypeSelector()}
-      
+
       <Controller
         name="authentication.type"
         control={control}

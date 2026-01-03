@@ -1,8 +1,8 @@
 
 
-import type { 
-  AuthenticationType, 
-  SecretStoreType, 
+import type {
+  AuthenticationType,
+  SecretStoreType,
   HttpMethod,
   SecretReference,
   AuthenticationConfig,
@@ -361,7 +361,7 @@ export const createApiConfigTemplate = (name: string): Partial<ApiConfig> => ({
       method: 'GET',
       path: '/example',
       headers: [],
-      queryParams: {},
+      queryParams: [],
     },
   ],
   tags: [],
@@ -372,7 +372,7 @@ export const createApiConfigTemplate = (name: string): Partial<ApiConfig> => ({
  * Generate secret store configuration template
  */
 export const createSecretStoreTemplate = (
-  name: string, 
+  name: string,
   type: SecretStoreType
 ): Partial<SecretStoreConfig> => {
   const base = {
@@ -434,11 +434,11 @@ export const maskSensitiveValue = (value: string | SecretReference): string => {
   if (isSecretReference(value)) {
     return formatSecretReference(value);
   }
-  
+
   if (typeof value === 'string' && value.length > 4) {
     return `${value.substring(0, 2)}${'*'.repeat(value.length - 4)}${value.substring(value.length - 2)}`;
   }
-  
+
   return '***';
 };
 
@@ -550,12 +550,21 @@ export const transformApiFormToDto = (formData: any): any => {
         }
       }
 
-      // Transform queryParams to object
+      // Transform queryParams from array to object (key-value pairs) for backend compatibility
       if (endpoint.queryParams) {
-        if (typeof endpoint.queryParams === 'object' && !Array.isArray(endpoint.queryParams)) {
-          if (Object.keys(endpoint.queryParams).length > 0) {
-            transformedEndpoint.queryParams = endpoint.queryParams;
+        if (Array.isArray(endpoint.queryParams)) {
+          const paramsObj = endpoint.queryParams.reduce((acc: any, param: any) => {
+            if (param.name && param.value !== undefined) {
+              acc[param.name] = param.value;
+            }
+            return acc;
+          }, {});
+
+          if (Object.keys(paramsObj).length > 0) {
+            transformedEndpoint.queryParams = paramsObj;
           }
+        } else if (typeof endpoint.queryParams === 'object' && Object.keys(endpoint.queryParams).length > 0) {
+          transformedEndpoint.queryParams = endpoint.queryParams;
         }
       }
 

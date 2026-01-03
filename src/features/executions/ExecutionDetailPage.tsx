@@ -80,8 +80,9 @@ const ExecutionDetailPage: React.FC = () => {
     queryFn: () => id ? executionApi.getExecution(id) : null,
     enabled: !!id,
     refetchInterval: (query) => {
-      // Auto-refresh running executions every 5 seconds
-      return query.state.data?.status === 'RUNNING' ? 5000 : false;
+      // Auto-refresh running and pending executions every 3 seconds
+      const status = query.state.data?.status;
+      return (status === 'RUNNING' || status === 'PENDING') ? 3000 : false;
     },
   });
 

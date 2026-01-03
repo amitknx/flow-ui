@@ -1,11 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  ArrowLeft, 
-  Play, 
-  Save, 
-  Download, 
+import {
+  ArrowLeft,
+  Play,
+  Save,
+  Download,
   Settings,
   Eye,
   EyeOff,
@@ -31,7 +31,6 @@ const WorkflowAuthoringPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [showPalette, setShowPalette] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const {
     currentWorkflow,
@@ -40,7 +39,9 @@ const WorkflowAuthoringPage: React.FC = () => {
     setSidebarOpen,
     selectedNodeId,
     setSelectedNodeId,
-    resetWorkflow
+    resetWorkflow,
+    workflowDirty,
+    setWorkflowDirty
   } = useWorkflowStore();
 
   const {
@@ -63,7 +64,7 @@ const WorkflowAuthoringPage: React.FC = () => {
     },
     onSuccess: async (savedWorkflow) => {
       setCurrentWorkflow(savedWorkflow);
-      setHasUnsavedChanges(false);
+      setWorkflowDirty(false);
       // Invalidate both workflow list and specific workflow queries
       await queryClient.invalidateQueries({ queryKey: ['workflows'] });
       await queryClient.invalidateQueries({ queryKey: ['workflow', savedWorkflow.id] });
@@ -131,12 +132,12 @@ const WorkflowAuthoringPage: React.FC = () => {
   const handleExecute = async () => {
     if (!currentWorkflow?.id) {
       // Save first if it's a new workflow
-      if (hasUnsavedChanges) {
+      if (workflowDirty) {
         await handleSave();
       }
       return;
     }
-    
+
     try {
       const result = await executionApi.createExecution({
         workflowId: currentWorkflow.id,
@@ -170,9 +171,9 @@ const WorkflowAuthoringPage: React.FC = () => {
         nodes: [...currentWorkflow.nodes, newNode],
       };
       setCurrentWorkflow(updatedWorkflow);
-      setHasUnsavedChanges(true);
+      setWorkflowDirty(true);
     }
-  }, [currentWorkflow, setCurrentWorkflow]);
+  }, [currentWorkflow, setCurrentWorkflow, setWorkflowDirty]);
 
   // setSelectedNodeId is already available from the main useWorkflowStore call above
 
@@ -202,10 +203,10 @@ const WorkflowAuthoringPage: React.FC = () => {
       ...currentWorkflow,
       nodes: [...currentWorkflow.nodes, duplicatedNode],
     };
-    
+
     setCurrentWorkflow(updatedWorkflow);
-    setHasUnsavedChanges(true);
-  }, [currentWorkflow, setCurrentWorkflow, setHasUnsavedChanges]);
+    setWorkflowDirty(true);
+  }, [currentWorkflow, setCurrentWorkflow, setWorkflowDirty]);
 
   const handleNodeDelete = useCallback((nodeId: string) => {
     if (!currentWorkflow) return;
@@ -222,13 +223,13 @@ const WorkflowAuthoringPage: React.FC = () => {
     };
 
     setCurrentWorkflow(updatedWorkflow);
-    setHasUnsavedChanges(true);
+    setWorkflowDirty(true);
 
     if (selectedNodeId === nodeId) {
       setSelectedNodeId(null);
       setSidebarOpen(false);
     }
-  }, [currentWorkflow, setCurrentWorkflow, setHasUnsavedChanges, selectedNodeId, setSelectedNodeId, setSidebarOpen]);
+  }, [currentWorkflow, setCurrentWorkflow, setWorkflowDirty, selectedNodeId, setSelectedNodeId, setSidebarOpen]);
 
   const nodeActionHandler = {
     onConfigure: handleNodeConfigure,
@@ -269,10 +270,10 @@ const WorkflowAuthoringPage: React.FC = () => {
   const handleExportWorkflow = () => {
     if (currentWorkflow) {
       const dataStr = JSON.stringify(currentWorkflow, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-      
+      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
       const exportFileDefaultName = `${currentWorkflow.name.replace(/\s+/g, '_')}.json`;
-      
+
       const linkElement = document.createElement('a');
       linkElement.setAttribute('href', dataUri);
       linkElement.setAttribute('download', exportFileDefaultName);
@@ -320,7 +321,7 @@ const WorkflowAuthoringPage: React.FC = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            
+
             <div>
               <div className="flex items-center space-x-3">
                 <input
@@ -332,20 +333,20 @@ const WorkflowAuthoringPage: React.FC = () => {
                         ...currentWorkflow,
                         name: e.target.value,
                       });
-                      setHasUnsavedChanges(true);
+                      setWorkflowDirty(true);
                     }
                   }}
                   className="text-xl font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1"
                   placeholder="Workflow name..."
                 />
-                
-                {hasUnsavedChanges && (
+
+                {workflowDirty && (
                   <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded-full">
                     Unsaved changes
                   </span>
                 )}
               </div>
-              
+
               <input
                 type="text"
                 value={currentWorkflow?.description || ''}
@@ -355,7 +356,7 @@ const WorkflowAuthoringPage: React.FC = () => {
                       ...currentWorkflow,
                       description: e.target.value,
                     });
-                    setHasUnsavedChanges(true);
+                    setWorkflowDirty(true);
                   }
                 }}
                 className="text-sm text-gray-600 bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 mt-1"
@@ -377,7 +378,7 @@ const WorkflowAuthoringPage: React.FC = () => {
               >
                 <Grid3X3 className="w-4 h-4" />
               </button>
-              
+
               <button
                 onClick={() => setShowPalette(!showPalette)}
                 className={clsx(
@@ -411,7 +412,7 @@ const WorkflowAuthoringPage: React.FC = () => {
 
             <button
               onClick={handleSave}
-              disabled={!hasUnsavedChanges || saveWorkflowMutation.isPending}
+              disabled={!workflowDirty || saveWorkflowMutation.isPending}
               className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
               <Save className="w-4 h-4 mr-2" />
@@ -457,7 +458,7 @@ const WorkflowAuthoringPage: React.FC = () => {
             }}
             onAddNode={handleAddNode}
             nodeActionHandler={nodeActionHandler}
-            onWorkflowChange={() => setHasUnsavedChanges(true)}
+            onWorkflowChange={() => setWorkflowDirty(true)}
           />
         </div>
 

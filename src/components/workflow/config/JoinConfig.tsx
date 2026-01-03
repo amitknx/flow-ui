@@ -13,6 +13,13 @@ const JoinConfig: React.FC<JoinConfigProps> = ({ nodeId, data }) => {
   const [policy, setPolicy] = useState<JoinPolicy>(data?.policy || 'ALL');
   const [count, setCount] = useState<string>(data?.count?.toString() || '2');
 
+  // Reset local state when nodeId changes (switching between different nodes)
+  useEffect(() => {
+    setPolicy(data?.policy || 'ALL');
+    setCount(data?.count?.toString() || '2');
+  }, [nodeId]); // Only reset when nodeId changes
+
+  // Update store when local state changes
   useEffect(() => {
     const configData: Record<string, any> = { policy };
     if (policy === 'COUNT') {

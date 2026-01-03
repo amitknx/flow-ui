@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { 
-  Save, 
-  TestTube, 
-  Plus, 
-  Trash2, 
+import {
+  Save,
+  TestTube,
+  Plus,
+  Trash2,
   AlertTriangle,
   CheckCircle,
   Info
@@ -100,7 +100,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
     control,
     handleSubmit,
     watch,
-    
+
     formState: { errors, isDirty, isValid },
     reset,
   } = useForm<ApiConfigFormData>({
@@ -294,7 +294,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                       {...field}
                       type="text"
                       className={clsx(
-                        'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm',
+                        'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2',
                         errors.name && 'border-red-300 focus:border-red-500 focus:ring-red-500'
                       )}
                       placeholder="My API"
@@ -317,7 +317,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                     <input
                       {...field}
                       type="text"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                       placeholder="1.0"
                     />
                   )}
@@ -337,7 +337,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                     {...field}
                     type="url"
                     className={clsx(
-                      'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm',
+                      'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2',
                       errors.baseUrl && 'border-red-300 focus:border-red-500 focus:ring-red-500'
                     )}
                     placeholder="https://api.example.com"
@@ -360,7 +360,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                   <textarea
                     {...field}
                     rows={3}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                     placeholder="Describe what this API does..."
                   />
                 )}
@@ -391,7 +391,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                         <input
                           {...tagField}
                           type="text"
-                          className="block flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          className="block flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                           placeholder="Tag name"
                         />
                       )}
@@ -476,7 +476,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                           <input
                             {...headerField}
                             type="text"
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                             placeholder="Header name"
                           />
                         )}
@@ -490,7 +490,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                           <input
                             {...valueField}
                             type="text"
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                             placeholder="Header value"
                           />
                         )}
@@ -504,7 +504,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                           <input
                             {...descField}
                             type="text"
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                             placeholder="Description"
                           />
                         )}
@@ -555,7 +555,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                         {...field}
                         type="number"
                         min="1"
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                         placeholder="100"
                       />
                     )}
@@ -573,7 +573,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                         {...field}
                         type="number"
                         min="1"
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                         placeholder="200"
                       />
                     )}
@@ -603,7 +603,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                     Enable circuit breaker
                   </label>
                 </div>
-                
+
                 {watchedValues.circuitBreaker?.enabled && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
                     <div>
@@ -618,7 +618,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                             {...field}
                             type="number"
                             min="1"
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                             placeholder="5"
                           />
                         )}
@@ -636,7 +636,7 @@ export const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
                             {...field}
                             type="number"
                             min="1000"
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                             placeholder="30000"
                           />
                         )}

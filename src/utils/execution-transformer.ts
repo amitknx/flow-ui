@@ -62,7 +62,40 @@ export function transformExecutionToSnapshot(execution: WorkflowExecution): Exec
         // 2. Target node has started execution (not PENDING)
         const sourceExecuted = sourceNode && sourceNode.status !== 'PENDING';
         const targetExecuted = targetNode && targetNode.status !== 'PENDING';
-        const traversed = !!(sourceExecuted && targetExecuted);
+        let traversed = !!(sourceExecuted && targetExecuted);
+
+        // Special handling for Conditional Nodes
+        if (traversed && sourceNode?.type === 'CONDITIONAL' && sourceNode.output) {
+            // Try to determine the result from the output
+            // It could be in 'result', 'value', or the output itself might be the boolean
+            const output = sourceNode.output;
+            let result: boolean | undefined;
+
+            if (typeof output === 'boolean') {
+                result = output;
+            } else if (typeof output.result === 'boolean') {
+                result = output.result;
+            } else if (typeof output.value === 'boolean') {
+                result = output.value;
+            } else if (output.conditionResult !== undefined) {
+                result = !!output.conditionResult;
+            }
+
+            if (result !== undefined) {
+                // Check if this edge corresponds to the taken branch
+                const handleId = edge.sourceHandle;
+
+                // Handle both 'true'/'false' and 'true-branch'/'false-branch' IDs
+                const isTrueBranch = handleId === 'true' || handleId === 'true-branch';
+                const isFalseBranch = handleId === 'false' || handleId === 'false-branch';
+
+                if (isTrueBranch && !result) {
+                    traversed = false;
+                } else if (isFalseBranch && result) {
+                    traversed = false;
+                }
+            }
+        }
 
         return {
             ...edge,
