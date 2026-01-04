@@ -1,11 +1,11 @@
 import React from 'react';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, Clock, GitBranch, Play } from 'lucide-react';
 import { formatDuration } from '../../../utils';
-import type { WorkflowStatus } from '../../../types/workflow';
+import type { WorkflowStatus, NodeType } from '../../../types/workflow';
 
 interface NodeBodyProps {
   name: string;
-  description?: string;
+  type: NodeType;
   status?: WorkflowStatus;
   duration?: number;
   error?: string;
@@ -17,7 +17,7 @@ interface NodeBodyProps {
 
 const NodeBody: React.FC<NodeBodyProps> = ({
   name,
-  description,
+  type,
   status,
   duration,
   error,
@@ -26,63 +26,106 @@ const NodeBody: React.FC<NodeBodyProps> = ({
   isAuthoringMode = false,
   compact = false,
 }) => {
-  const paddingClass = compact ? 'px-1 py-0.5' : 'p-1';
+  const paddingClass = compact ? 'px-1.5 py-1' : 'p-1.5';
   const textSizeClass = compact ? 'text-[8px]' : 'text-[9px]';
   const smallTextClass = compact ? 'text-[7px]' : 'text-[8px]';
 
+  const renderPreview = () => {
+    if (!config) return null;
+
+    switch (type) {
+      case 'HTTP_REQUEST': {
+        const method = config.method || 'GET';
+        const path = config.path || config.endpointPath || config.url || '';
+        const methodColors: Record<string, string> = {
+          GET: 'bg-blue-100 text-blue-700',
+          POST: 'bg-green-100 text-green-700',
+          PUT: 'bg-orange-100 text-orange-700',
+          DELETE: 'bg-red-100 text-red-700',
+          PATCH: 'bg-purple-100 text-purple-700',
+        };
+
+        return (
+          <div className="flex flex-col gap-0.5 mt-1">
+            <div className="flex items-center gap-1">
+              <span className={`px-1 rounded-[2px] font-bold uppercase ${methodColors[method] || 'bg-gray-100 text-gray-700'} ${smallTextClass}`}>
+                {method}
+              </span>
+              <span className={`text-gray-500 truncate font-mono ${smallTextClass}`}>
+                {path.split('/').pop() || '/'}
+              </span>
+            </div>
+          </div>
+        );
+      }
+
+      case 'DELAY': {
+        const delayDuration = config.duration || 0;
+        const unit = config.unit || 's';
+        return (
+          <div className={`flex items-center gap-1 mt-1 text-gray-600 ${smallTextClass}`}>
+            <Clock className="w-2 h-2" />
+            <span>{delayDuration}{unit}</span>
+          </div>
+        );
+      }
+
+      case 'CONDITIONAL': {
+        const condition = config.condition || '';
+        return (
+          <div className={`flex items-center gap-1 mt-1 text-gray-600 ${smallTextClass}`}>
+            <GitBranch className="w-2 h-2" />
+            <span className="truncate italic">"{condition}"</span>
+          </div>
+        );
+      }
+
+      case 'START': {
+        const trigger = config.triggerType || 'Manual';
+        return (
+          <div className={`flex items-center gap-1 mt-1 text-gray-600 ${smallTextClass}`}>
+            <Play className="w-2 h-2" />
+            <span>{trigger}</span>
+          </div>
+        );
+      }
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className={`${paddingClass} ${compact ? 'space-y-0' : 'space-y-0.5'}`}>
-      <div className={`font-medium text-gray-900 ${textSizeClass} truncate`}>
+      <div className={`font-semibold text-gray-900 ${textSizeClass} truncate`}>
         {name}
       </div>
-      
-      {!compact && description && (
-        <div className={`${smallTextClass} text-gray-500 line-clamp-1`}>
-          {description}
+
+      {renderPreview()}
+
+      {isAuthoringMode && !isConfigured && (
+        <div className={`${smallTextClass} text-orange-600 bg-orange-50 px-1 py-0.5 rounded flex items-center gap-0.5 mt-1`}>
+          <AlertCircle className="w-2 h-2 flex-shrink-0" />
+          <span className="truncate">Needs Config</span>
         </div>
       )}
 
-      {isAuthoringMode && !isConfigured && (
-        <div className={`${smallTextClass} text-orange-600 bg-orange-50 px-1 py-0.5 rounded flex items-center gap-0.5`}>
-          <AlertCircle className="w-2 h-2 flex-shrink-0" />
-          <span className="truncate">Config</span>
-        </div>
-      )}
-      
       {duration && (
-        <div className={`${smallTextClass} text-gray-500`}>
-          Duration: {formatDuration(duration)}
+        <div className={`${smallTextClass} text-gray-500 mt-0.5`}>
+          {formatDuration(duration)}
         </div>
       )}
 
       {error && (
-        <div className={`${smallTextClass} text-red-600 bg-red-50 px-1 py-0.5 rounded truncate`}>
+        <div className={`${smallTextClass} text-red-600 bg-red-50 px-1 py-0.5 rounded truncate mt-1`}>
           {error}
         </div>
       )}
 
       {status === 'RUNNING' && (
-        <div className={`${smallTextClass} text-blue-600 bg-blue-50 px-1 py-0.5 rounded flex items-center gap-0.5`}>
+        <div className={`${smallTextClass} text-blue-600 bg-blue-50 px-1 py-0.5 rounded flex items-center gap-0.5 mt-1`}>
           <Loader2 className="w-2 h-2 animate-spin flex-shrink-0" />
-          <span>Run...</span>
-        </div>
-      )}
-
-      {/* Configuration preview - authoring mode only */}
-      {!compact && isAuthoringMode && config && Object.keys(config).length > 0 && (
-        <div className={`${smallTextClass} text-gray-600 bg-gray-50 px-2 py-1 rounded`}>
-          <div className="font-medium mb-1">Config:</div>
-          {Object.entries(config).slice(0, 1).map(([key, value]) => (
-            <div key={key} className="flex justify-between gap-1">
-              <span className="truncate">{key}:</span>
-              <span className="truncate max-w-[60px]">
-                {typeof value === 'string' ? value : JSON.stringify(value)}
-              </span>
-            </div>
-          ))}
-          {Object.keys(config).length > 1 && (
-            <div className="text-gray-400">+{Object.keys(config).length - 1} more</div>
-          )}
+          <span>Running...</span>
         </div>
       )}
     </div>

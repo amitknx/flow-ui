@@ -3,7 +3,8 @@ import { useWorkflowStore } from '../../../stores/workflow';
 import { useApis, useApi } from '../../../hooks/useApiManagement';
 
 
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Braces } from 'lucide-react';
+import VariablePicker from './VariablePicker';
 
 interface HttpRequestConfigProps {
   nodeId: string;
@@ -26,6 +27,9 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
   // State for custom parameters
   const [customHeaders, setCustomHeaders] = useState<{ key: string; value: string }[]>([]);
   const [customQueryParams, setCustomQueryParams] = useState<{ key: string; value: string }[]>([]);
+
+  // State for active variable picker
+  const [activePicker, setActivePicker] = useState<{ id: string; rect: DOMRect } | null>(null);
 
   // Use the centralized hook for fetching APIs
   const { data: apis, isLoading: isLoadingApis } = useApis();
@@ -165,6 +169,58 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
     setQueryParamOverrides(prev => ({ ...prev, [name]: value }));
   };
 
+  const insertVariable = (variable: string, currentValue: string, onChange: (val: string) => void, mode: 'replace' | 'append' = 'replace') => {
+    if (mode === 'append') {
+      onChange(currentValue + variable);
+    } else {
+      onChange(variable);
+    }
+    setActivePicker(null);
+  };
+
+  const renderInputWithPicker = (
+    id: string,
+    value: string,
+    onChange: (val: string) => void,
+    placeholder?: string,
+    className: string = "w-full"
+  ) => (
+    <div className="relative flex-1">
+      <div className="flex gap-1">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={className}
+          placeholder={placeholder}
+        />
+        <button
+          type="button"
+          onClick={(e) => {
+            if (activePicker?.id === id) {
+              setActivePicker(null);
+            } else {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setActivePicker({ id, rect });
+            }
+          }}
+          className={`p-2 text-gray-400 hover:text-blue-600 rounded-md border border-transparent hover:bg-blue-50 ${activePicker?.id === id ? 'text-blue-600 bg-blue-50 border-blue-200' : ''}`}
+          title="Insert Variable"
+        >
+          <Braces className="w-4 h-4" />
+        </button>
+      </div>
+      {activePicker?.id === id && (
+        <VariablePicker
+          nodeId={nodeId}
+          onSelect={(variable) => insertVariable(variable, value, onChange)}
+          onClose={() => setActivePicker(null)}
+          anchorRect={activePicker.rect}
+        />
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       {/* API Selection */}
@@ -299,14 +355,13 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
                           <span className="text-gray-500 italic">{header.description}</span>
                         )}
                       </div>
-                      <input
-                        type="text"
-                        value={currentValue}
-                        onChange={(e) => handleHeaderChange(header.name, e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm ${isOverridden ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
-                          }`}
-                        placeholder={typeof header.value === 'string' ? header.value : 'Value'}
-                      />
+                      {renderInputWithPicker(
+                        `header-defined-${header.name}`,
+                        currentValue,
+                        (val) => handleHeaderChange(header.name, val),
+                        typeof header.value === 'string' ? header.value : 'Value',
+                        `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm ${isOverridden ? 'border-blue-300 bg-blue-50' : 'border-gray-300'}`
+                      )}
                     </div>
                   );
                 });
@@ -326,17 +381,17 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                     placeholder="Key"
                   />
-                  <input
-                    type="text"
-                    value={header.value}
-                    onChange={(e) => {
+                  {renderInputWithPicker(
+                    `header-custom-${idx}`,
+                    header.value,
+                    (val) => {
                       const newHeaders = [...customHeaders];
-                      newHeaders[idx].value = e.target.value;
+                      newHeaders[idx].value = val;
                       setCustomHeaders(newHeaders);
-                    }}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-                    placeholder="Value"
-                  />
+                    },
+                    "Value",
+                    "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  )}
                   <button
                     type="button"
                     onClick={() => {
@@ -399,14 +454,13 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
                           <span className="text-gray-500 italic">{param.description}</span>
                         )}
                       </div>
-                      <input
-                        type="text"
-                        value={currentValue}
-                        onChange={(e) => handleQueryParamChange(param.name, e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm ${isOverridden ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
-                          }`}
-                        placeholder={typeof param.value === 'string' ? param.value : 'Value'}
-                      />
+                      {renderInputWithPicker(
+                        `query-defined-${param.name}`,
+                        currentValue,
+                        (val) => handleQueryParamChange(param.name, val),
+                        typeof param.value === 'string' ? param.value : 'Value',
+                        `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm ${isOverridden ? 'border-blue-300 bg-blue-50' : 'border-gray-300'}`
+                      )}
                     </div>
                   );
                 });
@@ -426,17 +480,17 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                     placeholder="Key"
                   />
-                  <input
-                    type="text"
-                    value={param.value}
-                    onChange={(e) => {
+                  {renderInputWithPicker(
+                    `query-custom-${idx}`,
+                    param.value,
+                    (val) => {
                       const newParams = [...customQueryParams];
-                      newParams[idx].value = e.target.value;
+                      newParams[idx].value = val;
                       setCustomQueryParams(newParams);
-                    }}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-                    placeholder="Value"
-                  />
+                    },
+                    "Value",
+                    "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  )}
                   <button
                     type="button"
                     onClick={() => {
@@ -478,14 +532,41 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
                   )}
                 </div>
               </div>
-              <textarea
-                value={requestBody}
-                onChange={(e) => setRequestBody(e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono text-xs ${requestBody ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
-                  }`}
-                rows={8}
-                placeholder='{\n  "key": "value"\n}'
-              />
+              <div className="relative">
+                <textarea
+                  value={requestBody}
+                  onChange={(e) => setRequestBody(e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono text-xs ${requestBody ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
+                    }`}
+                  rows={8}
+                  placeholder='{\n  "key": "value"\n}'
+                />
+                <div className="absolute top-2 right-2">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      if (activePicker?.id === 'body') {
+                        setActivePicker(null);
+                      } else {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setActivePicker({ id: 'body', rect });
+                      }
+                    }}
+                    className={`p-1.5 text-gray-400 hover:text-blue-600 rounded-md border border-gray-200 bg-white shadow-sm hover:bg-blue-50 ${activePicker?.id === 'body' ? 'text-blue-600 border-blue-200' : ''}`}
+                    title="Insert Variable"
+                  >
+                    <Braces className="w-4 h-4" />
+                  </button>
+                  {activePicker?.id === 'body' && (
+                    <VariablePicker
+                      nodeId={nodeId}
+                      onSelect={(variable) => insertVariable(variable, requestBody, setRequestBody, 'append')}
+                      onClose={() => setActivePicker(null)}
+                      anchorRect={activePicker.rect}
+                    />
+                  )}
+                </div>
+              </div>
               {selectedEndpoint.requestBody?.schema && (
                 <p className="text-xs text-gray-500 italic">
                   Schema validation available

@@ -47,7 +47,7 @@ export interface NodeSize {
 }
 
 export const NODE_SIZES: Record<'default' | 'compact' | 'large', NodeSize> = {
-  compact: { width: 90, height: 45, compact: true },
+  compact: { width: 90, height: 60, compact: true },
   default: { width: 110, height: 55 },
   large: { width: 140, height: 70 },
 };

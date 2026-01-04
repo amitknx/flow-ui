@@ -30,9 +30,9 @@ export interface UnifiedWorkflowNodeData {
   mode?: 'authoring' | 'execution';
 }
 
-const UnifiedWorkflowNode: React.FC<NodeProps<UnifiedWorkflowNodeData>> = ({ 
-  id, 
-  data, 
+const UnifiedWorkflowNode: React.FC<NodeProps<UnifiedWorkflowNodeData>> = ({
+  id,
+  data,
   selected,
   actionHandler
 }) => {
@@ -45,7 +45,7 @@ const UnifiedWorkflowNode: React.FC<NodeProps<UnifiedWorkflowNodeData>> = ({
   const nodeWidth = isCompact ? 'min-w-[90px] max-w-[120px]' : 'min-w-[110px] max-w-[140px]';
 
   return (
-    <div 
+    <div
       className={clsx(
         'bg-white rounded-md shadow-sm border-2 transition-all duration-200',
         nodeWidth,
@@ -53,16 +53,16 @@ const UnifiedWorkflowNode: React.FC<NodeProps<UnifiedWorkflowNodeData>> = ({
         data.status && `bg-${data.status.toLowerCase()}-50`,
         isAuthoringMode && 'group'
       )}
-      style={{ 
+      style={{
         minWidth: nodeSize.width,
-        minHeight: nodeSize.height 
+        minHeight: nodeSize.height
       }}
       onMouseEnter={() => isAuthoringMode && setShowActions(true)}
       onMouseLeave={() => isAuthoringMode && setShowActions(false)}
     >
       {/* Node Handles */}
       <NodeHandles type={data.type} compact={isCompact} />
-      
+
       {/* Node Header */}
       <NodeHeader
         nodeId={id}
@@ -78,7 +78,7 @@ const UnifiedWorkflowNode: React.FC<NodeProps<UnifiedWorkflowNodeData>> = ({
       {/* Node Body */}
       <NodeBody
         name={data.name}
-        description={data.description}
+        type={data.type}
         status={data.status}
         duration={data.duration}
         error={data.error}
