@@ -85,6 +85,17 @@ export const getNodeOutputs = (node: WorkflowNode): NodeOutputGroup[] => {
                 }
             ];
 
+        case 'SCRIPT':
+            return [
+                {
+                    id: 'output',
+                    label: 'Script Output',
+                    outputs: [
+                        { path: 'result', label: 'Full Result', type: 'any', description: 'The object returned by the script' },
+                    ]
+                }
+            ];
+
         // Add other node types as needed
 
         default:
@@ -95,8 +106,7 @@ export const getNodeOutputs = (node: WorkflowNode): NodeOutputGroup[] => {
 /**
  * Generate the variable reference syntax
  */
-export const generateVariableSyntax = (nodeName: string, path: string): string => {
-    // Sanitize node name if needed, but for now assume it's safe or we use ID if name is not unique/safe
-    // The requirement was {{steps.<node_name>.outputs.<path>}}
-    return `{{steps.${nodeName}.outputs.${path}}}`;
+export const generateVariableSyntax = (nodeId: string, path: string): string => {
+    // Use Node ID for stability as requested
+    return `{{steps.${nodeId}.outputs.${path}}}`;
 };

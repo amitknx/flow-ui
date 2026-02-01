@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertCircle, Loader2, Clock, GitBranch, Play } from 'lucide-react';
+import { AlertCircle, Loader2, Clock, GitBranch, Play, Code2 } from 'lucide-react';
 import { formatDuration } from '../../../utils';
 import type { WorkflowStatus, NodeType } from '../../../types/workflow';
 
@@ -52,7 +52,7 @@ const NodeBody: React.FC<NodeBodyProps> = ({
                 {method}
               </span>
               <span className={`text-gray-500 truncate font-mono ${smallTextClass}`}>
-                {path.split('/').pop() || '/'}
+                {path.split('/').filter(Boolean).pop() || '/'}
               </span>
             </div>
           </div>
@@ -86,6 +86,16 @@ const NodeBody: React.FC<NodeBodyProps> = ({
           <div className={`flex items-center gap-1 mt-1 text-gray-600 ${smallTextClass}`}>
             <Play className="w-2 h-2" />
             <span>{trigger}</span>
+          </div>
+        );
+      }
+
+      case 'SCRIPT': {
+        const code = config.code || '';
+        return (
+          <div className={`flex items-center gap-1 mt-1 text-indigo-600 ${smallTextClass}`}>
+            <Code2 className="w-2 h-2" />
+            <span className="truncate font-mono">{code.split('\n')[0] || 'empty script'}</span>
           </div>
         );
       }

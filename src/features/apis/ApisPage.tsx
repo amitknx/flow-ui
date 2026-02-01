@@ -13,7 +13,8 @@ import {
   Lock,
   Clock,
   TrendingUp,
-  Key
+  Key,
+  Play
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -139,7 +140,7 @@ export const ApisPage: React.FC = () => {
                 <span>{api.endpointCount || 0} endpoints</span>
               </div>
             </div>
-            
+
             {api.tags && api.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-4">
                 {api.tags.map(tag => (
@@ -152,7 +153,7 @@ export const ApisPage: React.FC = () => {
                 ))}
               </div>
             )}
-            
+
             <div className="flex items-center gap-4 text-xs text-gray-400">
               <div className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
@@ -164,7 +165,7 @@ export const ApisPage: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 ml-4">
             <div className="relative group">
               <button
@@ -208,6 +209,13 @@ export const ApisPage: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            to="/apis/playground"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            <Play className="w-4 h-4" />
+            Playground
+          </Link>
           <Link
             to="/secrets"
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
@@ -253,122 +261,122 @@ export const ApisPage: React.FC = () => {
         <>
           {/* Search and Filters */}
           <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <div className="flex items-center gap-4">
-          <div className="flex-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search APIs by name, description, or URL..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            />
-          </div>
-          
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={clsx(
-              'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-md',
-              showFilters
-                ? 'text-blue-700 bg-blue-100 border-blue-200'
-                : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50'
-            )}
-          >
-            <Filter className="w-4 h-4" />
-            Filters
-          </button>
-          
-          <select
-            value={`${sortBy}-${sortOrder}`}
-            onChange={(e) => {
-              const [field, order] = e.target.value.split('-');
-              setSortBy(field as any);
-              setSortOrder(order as any);
-            }}
-            className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="name-asc">Name (A-Z)</option>
-            <option value="name-desc">Name (Z-A)</option>
-            <option value="created-desc">Newest First</option>
-            <option value="created-asc">Oldest First</option>
-            <option value="updated-desc">Recently Updated</option>
-          </select>
-        </div>
+            <div className="flex items-center gap-4">
+              <div className="flex-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search APIs by name, description, or URL..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
 
-        {/* Expanded Filters */}
-        {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tags
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {allTags.map(tag => (
-                    <button
-                      key={tag}
-                      onClick={() => {
-                        if (selectedTags.includes(tag)) {
-                          setSelectedTags(selectedTags.filter(t => t !== tag));
-                        } else {
-                          setSelectedTags([...selectedTags, tag]);
-                        }
-                      }}
-                      className={clsx(
-                        'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border',
-                        selectedTags.includes(tag)
-                          ? 'bg-blue-100 text-blue-800 border-blue-200'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                      )}
-                    >
-                      {tag}
-                    </button>
-                  ))}
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={clsx(
+                  'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-md',
+                  showFilters
+                    ? 'text-blue-700 bg-blue-100 border-blue-200'
+                    : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50'
+                )}
+              >
+                <Filter className="w-4 h-4" />
+                Filters
+              </button>
+
+              <select
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [field, order] = e.target.value.split('-');
+                  setSortBy(field as any);
+                  setSortOrder(order as any);
+                }}
+                className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="created-desc">Newest First</option>
+                <option value="created-asc">Oldest First</option>
+                <option value="updated-desc">Recently Updated</option>
+              </select>
+            </div>
+
+            {/* Expanded Filters */}
+            {showFilters && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tags
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {allTags.map(tag => (
+                        <button
+                          key={tag}
+                          onClick={() => {
+                            if (selectedTags.includes(tag)) {
+                              setSelectedTags(selectedTags.filter(t => t !== tag));
+                            } else {
+                              setSelectedTags([...selectedTags, tag]);
+                            }
+                          }}
+                          className={clsx(
+                            'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border',
+                            selectedTags.includes(tag)
+                              ? 'bg-blue-100 text-blue-800 border-blue-200'
+                              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                          )}
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* Results */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-gray-600">
+                {filteredApis.length} {filteredApis.length === 1 ? 'API' : 'APIs'} found
+              </p>
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* Results */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-gray-600">
-            {filteredApis.length} {filteredApis.length === 1 ? 'API' : 'APIs'} found
-          </p>
-        </div>
-
-        {filteredApis.length === 0 ? (
-          <EmptyState
-            icon={Globe}
-            title="No APIs found"
-            message={
-              searchQuery || selectedTags.length > 0
-                ? "No APIs match your current filters. Try adjusting your search or filters."
-                : "You haven't created any APIs yet. Create your first API to get started."
-            }
-            action={
-              searchQuery || selectedTags.length > 0 ? {
-                label: 'Clear filters',
-                onClick: () => {
-                  setSearchQuery('');
-                  setSelectedTags([]);
+            {filteredApis.length === 0 ? (
+              <EmptyState
+                icon={Globe}
+                title="No APIs found"
+                message={
+                  searchQuery || selectedTags.length > 0
+                    ? "No APIs match your current filters. Try adjusting your search or filters."
+                    : "You haven't created any APIs yet. Create your first API to get started."
                 }
-              } : {
-                label: 'Create API',
-                href: '/apis/new'
-              }
-            }
-          />
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredApis.map(renderApiCard)}
+                action={
+                  searchQuery || selectedTags.length > 0 ? {
+                    label: 'Clear filters',
+                    onClick: () => {
+                      setSearchQuery('');
+                      setSelectedTags([]);
+                    }
+                  } : {
+                    label: 'Create API',
+                    href: '/apis/new'
+                  }
+                }
+              />
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {filteredApis.map(renderApiCard)}
+              </div>
+            )}
           </div>
-        )}
-      </div>
         </>
       )}
     </div>

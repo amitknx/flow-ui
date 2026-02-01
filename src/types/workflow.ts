@@ -9,7 +9,8 @@ export type NodeType =
   | 'DELAY'
   | 'CONDITIONAL'
   | 'JOIN'
-  | 'SUB_WORKFLOW';
+  | 'SUB_WORKFLOW'
+  | 'SCRIPT';
 
 export interface WorkflowDefinition {
   id: string;

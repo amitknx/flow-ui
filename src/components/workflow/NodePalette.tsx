@@ -17,6 +17,7 @@ const nodeItems: NodePaletteItem[] = [
   { type: 'CONDITIONAL', category: 'logic' },
   { type: 'JOIN', category: 'logic' },
   { type: 'SUB_WORKFLOW', category: 'logic' },
+  { type: 'SCRIPT', category: 'logic' },
 ];
 
 interface PaletteNodeItemProps {
@@ -48,8 +49,8 @@ const PaletteNodeItem: React.FC<PaletteNodeItemProps> = ({ item, onAddNode, onDr
     <div
       className={clsx(
         "group select-none transition-all duration-200",
-        disabled 
-          ? "cursor-not-allowed opacity-50" 
+        disabled
+          ? "cursor-not-allowed opacity-50"
           : "cursor-grab active:cursor-grabbing"
       )}
       draggable={!disabled}
@@ -69,7 +70,7 @@ const PaletteNodeItem: React.FC<PaletteNodeItemProps> = ({ item, onAddNode, onDr
         )}>
           <Icon className={clsx('w-4 h-4', config.textColor)} />
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="font-medium text-gray-900 text-sm truncate">
             {config.label}
@@ -78,7 +79,7 @@ const PaletteNodeItem: React.FC<PaletteNodeItemProps> = ({ item, onAddNode, onDr
             {config.description}
           </div>
         </div>
-        
+
         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
           <Plus className="w-3.5 h-3.5 text-primary-600" />
         </div>
@@ -94,8 +95,8 @@ interface NodePaletteProps {
   disabledNodeTypes?: NodeType[];
 }
 
-const NodePalette: React.FC<NodePaletteProps> = ({ 
-  onAddNode, 
+const NodePalette: React.FC<NodePaletteProps> = ({
+  onAddNode,
   className,
   compact = false,
   disabledNodeTypes = []
@@ -139,7 +140,7 @@ const NodePalette: React.FC<NodePaletteProps> = ({
           </p>
         )}
       </div>
-      
+
       <div className={clsx(compact ? 'p-2' : 'p-4')}>
         {Object.entries(groupedNodes).map(([category, items]) => (
           <div key={category} className={compact ? 'mb-3 last:mb-0' : 'mb-4 last:mb-0'}>
@@ -163,7 +164,7 @@ const NodePalette: React.FC<NodePaletteProps> = ({
           </div>
         ))}
       </div>
-      
+
       {!compact && (
         <div className="p-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
           <p className="text-xs text-gray-500">

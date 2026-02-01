@@ -19,6 +19,11 @@ A modern React-based user interface for the Flowboard workflow visualization and
   - Support for multiple authentication methods (Basic, Bearer, API Key, OAuth2)
   - Secret store integration for secure credential management
   - Endpoint configuration with headers and request bodies
+- **API Playground**: Test APIs interactively
+  - Build requests manually with method, URL, headers, and body
+  - Import cURL commands with automatic parsing
+  - View responses with formatted JSON and headers
+  - Copy requests as cURL for sharing
 - **Professional UI Components**: Built with the same high-quality components as your reference design
 - **WebSocket Integration**: Real-time updates via STOMP/SockJS
 - **Modular Architecture**: Feature-first directory structure for maintainability
@@ -175,6 +180,7 @@ Each node type has specific configuration requirements accessible via the sideba
 3. **Workflow Detail** (`/workflows/:id`) - Individual workflow view/edit
 4. **Executions** (`/executions`) - Execution history and monitoring
 5. **Execution Detail** (`/executions/:id`) - Real-time execution view
+6. **API Playground** (`/apis/playground`) - Test APIs with request builder and cURL import
 
 ## 🔄 State Management
 

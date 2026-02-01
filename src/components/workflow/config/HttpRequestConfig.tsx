@@ -145,12 +145,14 @@ const HttpRequestConfig: React.FC<HttpRequestConfigProps> = ({ nodeId, data }) =
       updateNodeData(nodeId, {
         apiId: selectedApiId,
         endpointId: selectedEndpointId,
+        method: (selectedEndpoint as any)?.method || (selectedEndpoint as any)?.httpMethod,
+        path: (selectedEndpoint as any)?.path || (selectedEndpoint as any)?.endpointPath,
         requestBody: bodyData,
         headers: mergedHeaders,
         queryParams: mergedQueryParams,
       });
     }
-  }, [selectedApiId, selectedEndpointId, requestBody, headerOverrides, queryParamOverrides, customHeaders, customQueryParams, nodeId, updateNodeData]);
+  }, [selectedApiId, selectedEndpointId, selectedEndpoint, requestBody, headerOverrides, queryParamOverrides, customHeaders, customQueryParams, nodeId, updateNodeData]);
 
   const handleApiChange = (apiId: string) => {
     setSelectedApiId(apiId);

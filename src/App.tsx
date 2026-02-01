@@ -14,6 +14,7 @@ import { ApisPage } from './features/apis/ApisPage';
 import { ApiCreatePage } from './features/apis/ApiCreatePage';
 import { ApiDetailPage } from './features/apis/ApiDetailPage';
 import { ApiEditPage } from './features/apis/ApiEditPage';
+import { ApiPlaygroundPage } from './features/apis/ApiPlaygroundPage';
 import { SecretStoresPage } from './features/secret-stores/SecretStoresPage';
 import { SecretStoreCreatePage } from './features/secret-stores/SecretStoreCreatePage';
 import SecretsPage from './features/secrets/SecretsPage';
@@ -58,10 +59,11 @@ function App() {
               {/* Executions */}
               <Route path="/executions" element={<ExecutionsPage />} />
               <Route path="/executions/:id" element={<ExecutionDetailPage />} />
-              
+
               {/* APIs */}
               <Route path="/apis" element={<ApisPage />} />
               <Route path="/apis/new" element={<ApiCreatePage />} />
+              <Route path="/apis/playground" element={<ApiPlaygroundPage />} />
               <Route path="/apis/:id/edit" element={<ApiEditPage />} />
               <Route path="/apis/:id" element={<ApiDetailPage />} />
 
@@ -71,7 +73,7 @@ function App() {
               {/* Secret Stores */}
               <Route path="/secret-stores" element={<SecretStoresPage />} />
               <Route path="/secret-stores/new" element={<SecretStoreCreatePage />} />
-              
+
               {/* 404 */}
               <Route path="*" element={
                 <div className="flex items-center justify-center h-96">
@@ -85,7 +87,7 @@ function App() {
           </main>
         </div>
       </Router>
-      
+
       {/* React Query Devtools */}
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>

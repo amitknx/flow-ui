@@ -6,6 +6,7 @@ import ConditionalConfig from './config/ConditionalConfig';
 import DelayConfig from './config/DelayConfig';
 import JoinConfig from './config/JoinConfig';
 import SubWorkflowConfig from './config/SubWorkflowConfig';
+import ScriptConfig from './config/ScriptConfig';
 
 interface NodeConfigPanelProps {
   node: WorkflowNode;
@@ -23,7 +24,7 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({ node }) => {
 
   const handleNameKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      e.currentTarget.blur();
+      (e.currentTarget as HTMLElement).blur();
     }
   };
 
@@ -39,6 +40,8 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({ node }) => {
         return <JoinConfig nodeId={node.id} data={node.data} />;
       case 'SUB_WORKFLOW':
         return <SubWorkflowConfig nodeId={node.id} data={node.data} />;
+      case 'SCRIPT':
+        return <ScriptConfig nodeId={node.id} data={node.data} />;
       case 'START':
       case 'END':
         return (

@@ -96,7 +96,7 @@ class ApiClient {
  * API Management Service (Tier 2)
  */
 export class ApiManagementService {
-  constructor(private client: ApiClient = new ApiClient()) {}
+  constructor(private client: ApiClient = new ApiClient()) { }
 
   // Create API with optional endpoints
   async createApi(request: ApiCreateRequest): Promise<ApiWithEndpoints> {
@@ -149,7 +149,7 @@ export class ApiManagementService {
  * API Endpoint Service (Tier 3)
  */
 export class ApiEndpointService {
-  constructor(private client: ApiClient = new ApiClient()) {}
+  constructor(private client: ApiClient = new ApiClient()) { }
 
   // Create endpoint for an API
   async createEndpoint(apiId: string, request: EndpointCreateRequest): Promise<ApiEndpoint> {
@@ -212,7 +212,33 @@ export class ApiEndpointService {
   }
 }
 
+/**
+ * Playground Service - for ad-hoc API testing
+ */
+export class PlaygroundService {
+  constructor(private client: ApiClient = new ApiClient()) { }
+
+  // Execute a playground request via proxy
+  async executeRequest(request: {
+    method: string;
+    url: string;
+    headers?: Record<string, string>;
+    body?: any;
+    timeoutMs?: number;
+  }): Promise<{
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    body: any;
+    durationMs: number;
+    error?: string;
+  }> {
+    return this.client.post('/api/v1/playground/execute', request);
+  }
+}
+
 // Export singleton instances
 export const apiManagementService = new ApiManagementService();
 export const apiEndpointService = new ApiEndpointService();
+export const playgroundService = new PlaygroundService();
 export { ApiError };
